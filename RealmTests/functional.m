@@ -5,9 +5,9 @@
 
 
 #import "RLMTestCase.h"
-#import <realm/objc/RLMFast.h>
-#import <realm/objc/RLMTable.h>
-#import <realm/objc/RLMTableFast.h>
+#import <Realm/RLMFast/RLMFast.h>
+#import <Realm/RLMTable.h>
+#import <Realm/RLMFast/RLMTableFast.h>
 
 @interface RLMPerson : RLMRow
 

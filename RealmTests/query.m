@@ -5,9 +5,9 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/Realm.h>
-#import <realm/objc/RLMQueryFast.h>
-#import <realm/objc/RLMTableFast.h>
+#import <Realm/Realm.h>
+#import <Realm/RLMFast/RLMQueryFast.h>
+#import <Realm/RLMFast/RLMTableFast.h>
 
 @interface TestQueryObj : RLMRow
 

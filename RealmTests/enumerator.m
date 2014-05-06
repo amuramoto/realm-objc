@@ -7,7 +7,7 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/Realm.h>
+#import <Realm/Realm.h>
 
 @interface EnumPeople : RLMRow
 @property NSString * Name;
@@ -23,8 +23,7 @@
 
 @implementation MACTestEnumerator
 
-- (void)testTutorial
-{
+- (void)testTutorial {
     //------------------------------------------------------
     NSLog(@"--- Creating tables ---");
     //------------------------------------------------------
@@ -106,6 +105,4 @@
     }
 }
 
-
 @end
-

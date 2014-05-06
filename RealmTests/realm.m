@@ -6,7 +6,7 @@
 //
 
 #import "RLMTestCase.h"
-#import <realm/objc/Realm.h>
+#import <Realm/Realm.h>
 #import "XCTestCase+AsyncTesting.h"
 
 @interface RLMTestObject : RLMRow
@@ -97,6 +97,9 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
                     created table after a RLMRealmDidChangeNotification was sent");
     XCTAssertEqual([table class], [RLMTable class], @"a newly created table read from \
                    RLMRealm should be of class RLMTable");
+    
+    [[NSFileManager defaultManager] removeItemAtPath:realmFilePath error:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:@"async.realm.lock" error:nil];
 }
 
 - (void)testRealmIsUpdatedAfterBackgroundUpdate {
@@ -127,6 +130,8 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
     RLMTable *table = [realm tableWithName:tableName];
     XCTAssertNotNil(table, @"The RLMRealm should be able to read a newly \
                     created table after a RLMRealmDidChangeNotification was sent");
+    
+    [[NSFileManager defaultManager] removeItemAtPath:realmFilePath error:nil];
 }
 
 - (void)testRealmIsUpdatedImmediatelyAfterBackgroundUpdate {
@@ -158,6 +163,8 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
     RLMTable *table = [realm tableWithName:tableName];
     XCTAssertNotNil(table, @"The RLMRealm should be able to read a newly \
                     created table after a RLMRealmDidChangeNotification was sent");
+    
+    [[NSFileManager defaultManager] removeItemAtPath:realmFilePath error:nil];
 }
 
 /* FIXME: disabled until we have per file compile options
@@ -213,7 +220,6 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
     });
     [self waitForStatus:XCTAsyncTestCaseStatusSucceeded timeout:1.0f];
 }
-
 
 - (void)testRealmWithArgumentsOnDifferentThreadDoesntThrow {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

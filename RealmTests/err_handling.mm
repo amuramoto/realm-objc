@@ -8,9 +8,9 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/Realm.h>
-#import <realm/objc/RLMTable_noinst.h>
-#import <realm/objc/RLMTableFast.h>
+#import <Realm/Realm.h>
+#import <Realm/RLMTable_noinst.h>
+#import <Realm/RLMFast/RLMTableFast.h>
 
 @interface PeopleErrObject : RLMRow
 

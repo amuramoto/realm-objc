@@ -1,7 +1,7 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/RLMVersion.h>
+#import <Realm/RLMVersion.h>
 
 @interface RLMTestVersion: RLMTestCase
 @end

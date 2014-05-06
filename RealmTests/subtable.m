@@ -7,7 +7,7 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/Realm.h>
+#import <Realm/Realm.h>
 
 @interface SubObject : RLMRow
 @property NSString * Name;

@@ -342,7 +342,7 @@ EOF
         ;;
 
     "get-version")
-        version_file="src/realm/objc/RLMVersion.h"
+        version_file="Realm/RLMVersion.h"
         realm_version_major="$(grep REALM_VERSION_MAJOR $version_file | awk '{print $3}' | tr -d ";")" || exit 1
         realm_version_minor="$(grep REALM_VERSION_MINOR $version_file | awk '{print $3}' | tr -d ";")" || exit 1
         realm_version_patch="$(grep REALM_VERSION_PATCH $version_file | awk '{print $3}' | tr -d ";")" || exit 1
@@ -368,22 +368,7 @@ EOF
         ;;
 
     "clean")
-        auto_configure || exit 1
-        $MAKE clean || exit 1
-        if [ "$OS" = "Darwin" ]; then
-            for x in $IPHONE_PLATFORMS; do
-                $MAKE BASE_DENOM="$x" clean || exit 1
-            done
-            $MAKE BASE_DENOM="ios" clean || exit 1
-            if [ -e "$IPHONE_DIR" ]; then
-                echo "Removing '$IPHONE_DIR'"
-                rm -fr "$IPHONE_DIR/include" || exit 1
-                rm -f "$IPHONE_DIR/librealm-objc-ios.a" "$IPHONE_DIR/librealm-objc-ios-dbg.a" || exit 1
-                rmdir "$IPHONE_DIR" || exit 1
-            fi
-        fi
-        echo "Done cleaning"
-        exit 0
+        xctool -scheme Realm clean || exit 1
         ;;
 
     "ci-clean")
@@ -484,7 +469,7 @@ EOF
         ;;
 
     "ios-framework")
-        if [ "$OS" != "Darwin" ]; then
+    if [ "$OS" != "Darwin" ]; then
 	    echo "Framework for iOS can only be generated under Mac OS X"
 	    exit 0
 	fi
@@ -495,8 +480,6 @@ EOF
 	cp iphone-lib/librealm-objc-ios.a "$FRAMEWORK/Realm" || exit 1
 	cp iphone-lib/include/realm/objc/*.h "$FRAMEWORK/Headers" || exit 1
 	(cd "$FRAMEWORK/Headers" && mv realm.h Realm.h) || exit 1
-	find "$FRAMEWORK/Headers" -name '*.h' -exec sed -i '' -e 's/import <realm\/objc\/\(.*\)>/import "\1"/g' {} \; || exit 1
-	find "$FRAMEWORK/Headers" -name '*.h' -exec sed -i '' -e 's/include <realm\/objc\/\(.*\)>/include "\1"/g' {} \; || exit 1
 	zip -r -q realm-ios-$realm_version.zip $FRAMEWORK || exit 1
 	echo "Framework for iOS can be found in realm-ios-$realm_version.zip"
 	exit 0

@@ -20,9 +20,9 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/RLMFast.h>
-#import <realm/objc/RLMTableFast.h>
-#import <realm/objc/RLMViewFast.h>
+#import <Realm/RLMFast/RLMFast.h>
+#import <Realm/RLMFast/RLMTableFast.h>
+#import <Realm/RLMFast/RLMViewFast.h>
 
 @interface table_view : RLMTestCase
 

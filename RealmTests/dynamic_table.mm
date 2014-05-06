@@ -20,10 +20,10 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/RLMFast.h>
-#import <realm/objc/RLMTableFast.h>
-#import <realm/objc/RLMTable_noinst.h>
-#import <realm/objc/RLMDescriptor.h>
+#import <Realm/RLMFast/RLMFast.h>
+#import <Realm/RLMFast/RLMTableFast.h>
+#import <Realm/RLMTable_noinst.h>
+#import <Realm/RLMDescriptor.h>
 
 using namespace std;
 @interface TestClass : NSObject

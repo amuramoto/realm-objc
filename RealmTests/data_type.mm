@@ -7,7 +7,7 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/RLMType.h>
+#import <Realm/RLMType.h>
 #include <tightdb/data_type.hpp>
 
 @interface TestDataType: RLMTestCase

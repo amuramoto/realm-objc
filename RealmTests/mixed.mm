@@ -7,8 +7,8 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/Realm.h>
-#import <realm/objc/RLMTable_noinst.h>
+#import <Realm/Realm.h>
+#import <Realm/RLMTable_noinst.h>
 
 @interface MixedObject : RLMRow
 

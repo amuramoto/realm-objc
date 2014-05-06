@@ -18,6 +18,13 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-#import <realm/objc/Realm.h>
-#import "RLMRowFast.h"
+#import <Realm/RLMConstants.h>
+#import <Realm/RLMTable.h>
+#import <Realm/RLMView.h>
+#import <Realm/RLMQuery.h>
+#import <Realm/RLMRow.h>
+#import <Realm/RLMRealm.h>
+#import <Realm/RLMVersion.h>
+#import <Realm/RLMDescriptor.h>
 
+#import <Realm/RLMPrivate.h>

@@ -5,10 +5,10 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/RLMTable.h>
-#import <realm/objc/RLMDescriptor.h>
-#import <realm/objc/RLMPrivate.h>
-#import <realm/objc/RLMTableFast.h>
+#import <Realm/RLMTable.h>
+#import <Realm/RLMDescriptor.h>
+#import <Realm/RLMPrivate.h>
+#import <Realm/RLMFast/RLMTableFast.h>
 
 @interface MACTestTableDeleteAll: RLMTestCase
 @end

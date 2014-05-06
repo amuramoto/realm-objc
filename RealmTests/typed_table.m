@@ -20,7 +20,7 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/Realm.h>
+#import <Realm/Realm.h>
 
 @interface Sub : RLMRow
 @property int age;

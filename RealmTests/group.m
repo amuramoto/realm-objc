@@ -7,8 +7,8 @@
 
 #import "RLMTestCase.h"
 
-#import <realm/objc/Realm.h>
-#import <realm/objc/RLMRealm.h>
+#import <Realm/Realm.h>
+#import <Realm/RLMRealm.h>
 
 @interface RLMTestObj2 : RLMRow
 
