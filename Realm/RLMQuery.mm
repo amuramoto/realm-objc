@@ -172,13 +172,13 @@ using namespace std;
 {
     RLMType colType = [[self originTable] columnTypeOfColumnWithIndex:colIndex];
     if (colType == RLMTypeInt) {
-        return [NSNumber numberWithInteger:[self minIntInColumnWithIndex:colIndex]];
+        return @([self minIntInColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeDouble) {
-        return [NSNumber numberWithDouble:[self minDoubleInColumnWithIndex:colIndex]];
+        return @([self minDoubleInColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeFloat) {
-        return [NSNumber numberWithDouble:[self minFloatInColumnWithIndex:colIndex]];
+        return @([self minFloatInColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeDate) {
         return [self minDateInColumnWithIndex:colIndex];
@@ -218,13 +218,13 @@ using namespace std;
 {
     RLMType colType = [[self originTable] columnTypeOfColumnWithIndex:colIndex];
     if (colType == RLMTypeInt) {
-        return [NSNumber numberWithInteger:[self maxIntInColumnWithIndex:colIndex]];
+        return @([self maxIntInColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeDouble) {
-        return [NSNumber numberWithDouble:[self maxDoubleInColumnWithIndex:colIndex]];
+        return @([self maxDoubleInColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeFloat) {
-        return [NSNumber numberWithDouble:[self maxFloatInColumnWithIndex:colIndex]];
+        return @([self maxFloatInColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeDate) {
         return [self maxDateInColumnWithIndex:colIndex];
@@ -263,13 +263,13 @@ using namespace std;
 {
     RLMType colType = [[self originTable] columnTypeOfColumnWithIndex:colIndex];
     if (colType == RLMTypeInt) {
-        return [NSNumber numberWithInteger:[self sumIntColumnWithIndex:colIndex]];
+        return @([self sumIntColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeDouble) {
-        return [NSNumber numberWithDouble:[self sumDoubleColumnWithIndex:colIndex]];
+        return @([self sumDoubleColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeFloat) {
-        return [NSNumber numberWithDouble:[self sumFloatColumnWithIndex:colIndex]];
+        return @([self sumFloatColumnWithIndex:colIndex]);
     }
     else {
         @throw [NSException exceptionWithName:@"realm:operation_not_supprted"
@@ -298,13 +298,13 @@ using namespace std;
 {
     RLMType colType = [[self originTable] columnTypeOfColumnWithIndex:colIndex];
     if (colType == RLMTypeInt) {
-        return [NSNumber numberWithDouble:[self avgIntColumnWithIndex:colIndex]];
+        return @([self avgIntColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeDouble) {
-        return [NSNumber numberWithDouble:[self avgDoubleColumnWithIndex:colIndex]];
+        return @([self avgDoubleColumnWithIndex:colIndex]);
     }
     else if (colType == RLMTypeFloat) {
-        return [NSNumber numberWithDouble:[self avgFloatColumnWithIndex:colIndex]];
+        return @([self avgFloatColumnWithIndex:colIndex]);
     }
     else {
         @throw [NSException exceptionWithName:@"realm:operation_not_supprted"

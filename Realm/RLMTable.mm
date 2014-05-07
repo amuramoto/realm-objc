@@ -1175,13 +1175,13 @@ if ([INPREDICATE isKindOfClass:[NSPredicate class]]) {     \
     NSNumber *sum;
     RLMType columnType = [self columnTypeOfColumnWithIndex:index];
     if (columnType == RLMTypeInt) {
-        sum = [NSNumber numberWithInteger:query.sum_int(index)];
+        sum = @(query.sum_int(index));
     }
     else if (columnType == RLMTypeDouble) {
-        sum = [NSNumber numberWithDouble:query.sum_double(index)];
+        sum = @(query.sum_double(index));
     }
     else if (columnType == RLMTypeFloat) {
-        sum = [NSNumber numberWithDouble:query.sum_float(index)];
+        sum = @(query.sum_float(index));
     }
     else {
         @throw [NSException exceptionWithName:@"realm:operation_not_supprted"
@@ -1210,13 +1210,13 @@ if ([INPREDICATE isKindOfClass:[NSPredicate class]]) {     \
     NSNumber *average;
     RLMType columnType = [self columnTypeOfColumnWithIndex:index];
     if (columnType == RLMTypeInt) {
-        average = [NSNumber numberWithDouble:query.average_int(index)];
+        average = @(query.average_int(index));
     }
     else if (columnType == RLMTypeDouble) {
-        average = [NSNumber numberWithDouble:query.average_double(index)];
+        average = @(query.average_double(index));
     }
     else if (columnType == RLMTypeFloat) {
-        average = [NSNumber numberWithDouble:query.average_float(index)];
+        average = @(query.average_float(index));
     }
     else {
         @throw [NSException exceptionWithName:@"realm:operation_not_supprted"
@@ -1245,13 +1245,13 @@ if ([INPREDICATE isKindOfClass:[NSPredicate class]]) {     \
     id min;
     RLMType columnType = [self columnTypeOfColumnWithIndex:index];
     if (columnType == RLMTypeInt) {
-        min = [NSNumber numberWithInteger:query.minimum_int(index)];
+        min = @(query.minimum_int(index));
     }
     else if (columnType == RLMTypeDouble) {
-        min = [NSNumber numberWithDouble:query.minimum_double(index)];
+        min = @(query.minimum_double(index));
     }
     else if (columnType == RLMTypeFloat) {
-        min = [NSNumber numberWithFloat:query.minimum_float(index)];
+        min = @(query.minimum_float(index));
     }
     else if (columnType == RLMTypeDate) {
         @throw [NSException exceptionWithName:@"realm:operation_not_supported"
@@ -1285,13 +1285,13 @@ if ([INPREDICATE isKindOfClass:[NSPredicate class]]) {     \
     id max;
     RLMType columnType = [self columnTypeOfColumnWithIndex:index];
     if (columnType == RLMTypeInt) {
-        max = [NSNumber numberWithInteger:query.maximum_int(index)];
+        max = @(query.maximum_int(index));
     }
     else if (columnType == RLMTypeDouble) {
-        max = [NSNumber numberWithDouble:query.maximum_double(index)];
+        max = @(query.maximum_double(index));
     }
     else if (columnType == RLMTypeFloat) {
-        max = [NSNumber numberWithFloat:query.maximum_float(index)];
+        max = @(query.maximum_float(index));
     }
     else if (columnType == RLMTypeDate) {
         @throw [NSException exceptionWithName:@"realm:operation_not_supported"

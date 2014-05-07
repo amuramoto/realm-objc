@@ -307,7 +307,8 @@ using namespace std;
         XCTAssertNoThrow(([table addRow:@{@"first": @1000000000}]), @"Cannot insert 'time_t'");   // 2001-09-09 01:46:40
         XCTAssertEqual((NSUInteger)1, ([table rowCount]), @"1 row expected");
         
-        NSDate *d = [[NSDate alloc] initWithString:@"2001-09-09 01:46:40 +0000"];
+        // NSDate *d = [[NSDate alloc] initWithString:@"2001-09-09 01:46:40 +0000"];
+        NSDate *d = [[NSDate alloc] initWithTimeIntervalSince1970:0];
         XCTAssertNoThrow(([table addRow:@{@"first": d}]), @"Cannot insert 'NSDate'");
         XCTAssertEqual((NSUInteger)2, ([table rowCount]), @"2 rows excepted");
         
@@ -320,7 +321,8 @@ using namespace std;
         XCTAssertNoThrow(([table addRow:@{@"first": @1000000000}]), @"Cannot insert 'time_t'");   // 2001-09-09 01:46:40
         XCTAssertEqual((NSUInteger)5, ([table rowCount]), @"1 row expected");
         
-        d = [[NSDate alloc] initWithString:@"2001-09-09 01:46:40 +0000"];
+        // d = [[NSDate alloc] initWithString:@"2001-09-09 01:46:40 +0000"];
+        d = [NSDate date];
         XCTAssertNoThrow(([table addRow:@{@"first": d}]), @"Cannot insert 'NSDate'");
         XCTAssertEqual((NSUInteger)6, ([table rowCount]), @"2 rows excepted");
     }];

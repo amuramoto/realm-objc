@@ -81,20 +81,16 @@ NSObject* get_cell(size_t col_ndx, size_t row_ndx, Table& table)
             return s;
         }
         case type_Int: {
-            NSNumber *n = [NSNumber numberWithLongLong:table.get_int(col_ndx, row_ndx)];
-            return n;
+            return @(table.get_int(col_ndx, row_ndx));
         }
         case type_Float: {
-            NSNumber *n = [NSNumber numberWithFloat:table.get_float(col_ndx, row_ndx)];
-            return n;
+            return @(table.get_float(col_ndx, row_ndx));
         }
         case type_Double: {
-            NSNumber *n = [NSNumber numberWithDouble:table.get_double(col_ndx, row_ndx)];
-            return n;
+            return @(table.get_double(col_ndx, row_ndx));
         }
         case type_Bool: {
-            NSNumber *n = [NSNumber numberWithBool:table.get_bool(col_ndx, row_ndx)];
-            return n;
+            return @(table.get_bool(col_ndx, row_ndx));
         }
         case type_Binary: {
             BinaryData bd = table.get_binary(col_ndx, row_ndx);
@@ -119,20 +115,16 @@ NSObject* get_cell(size_t col_ndx, size_t row_ndx, Table& table)
                     return s;
                 }
                 case type_Int: {
-                    NSNumber *n = [NSNumber numberWithLongLong:m.get_int()];
-                    return n;
+                    return @(m.get_int());
                 }
                 case type_Float: {
-                    NSNumber *n = [NSNumber numberWithFloat:m.get_float()];
-                    return n;
+                    return @(m.get_float());
                 }
                 case type_Double: {
-                    NSNumber *n = [NSNumber numberWithDouble:m.get_double()];
-                    return n;
+                    return @(m.get_double());
                 }
                 case type_Bool: {
-                    NSNumber *n = [NSNumber numberWithBool:m.get_bool()];
-                    return n;
+                    return @(m.get_bool());
                 }
                 case type_Binary: {
                     BinaryData bd = m.get_binary();
@@ -281,7 +273,7 @@ void verify_row(const Descriptor& descr, NSArray* data)
             @throw [NSException exceptionWithName:@"realm:wrong_column_type"
                                            reason:[NSString stringWithFormat: @"colName %@ with index: %lu is of type %s",
                                                             to_objc_string(descr.get_column_name(col_ndx)), col_ndx,
-                                                                           rlmtype_to_string(descr.get_column_type(col_ndx)) ]
+                                                                           "rlmtype_to_string(descr.get_column_type(col_ndx))" ]
                                          userInfo:nil];
         }
         ++col_ndx;
@@ -299,7 +291,7 @@ void verify_row_with_labels(const Descriptor& descr, NSDictionary* data)
         if (!verify_cell(descr, i, value)) {
             @throw [NSException exceptionWithName:@"realm:wrong_column_type"
                                            reason:[NSString stringWithFormat:@"colName %@ with index: %lu is of type %s",
-                                                   to_objc_string(descr.get_column_name(i)), i, rlmtype_to_string(descr.get_column_type(i)) ]
+                                                   to_objc_string(descr.get_column_name(i)), i, "rlmtype_to_string(descr.get_column_type(i))" ]
                                          userInfo:nil];
         }
     }
@@ -321,7 +313,7 @@ void verify_row_from_object(const Descriptor& descr, NSObject* data)
             @throw [NSException exceptionWithName: @"realm:wrong_column_type"
                                            reason: [NSString stringWithFormat:@"colName %@ with index: %lu is of type %s",
                                                     to_objc_string(descr.get_column_name(col_ndx)), col_ndx,
-                                                                   rlmtype_to_string(descr.get_column_type(col_ndx)) ]
+                                                                   "rlmtype_to_string(descr.get_column_type(col_ndx))" ]
                                          userInfo: nil];
         }
 
@@ -644,7 +636,7 @@ BOOL set_cell(size_t col_ndx, size_t row_ndx, Table& table, NSObject *obj)
             @throw [NSException exceptionWithName:@"realm:cannot insert subtable"
                                            reason:[NSString stringWithFormat:@"colName %@ with index: %lu is of type %s",
                                                             to_objc_string(table.get_column_name(col_ndx)), col_ndx,
-                                                                           rlmtype_to_string(table.get_column_type(col_ndx)) ]
+                                                                           "rlmtype_to_string(table.get_column_type(col_ndx))" ]
                                          userInfo:nil];
         }
         case type_Mixed:

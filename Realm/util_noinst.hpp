@@ -89,15 +89,15 @@ inline NSObject* to_objc_object(tightdb::Mixed m)
 {
     switch (m.get_type()) {
         case tightdb::type_Bool:
-            return [NSNumber numberWithBool:m.get_bool()];
+            return @(m.get_bool());
         case tightdb::type_Int:
-            return [NSNumber numberWithLongLong:m.get_int()];
+            return @(m.get_int());
         case tightdb::type_Float:
-            return [NSNumber numberWithFloat:m.get_float()];
+            return @(m.get_float());
         case tightdb::type_Double:
-            return [NSNumber numberWithDouble:m.get_double()];
+            return @(m.get_double());
         case tightdb::type_DateTime:
-            return [NSDate dateWithTimeIntervalSince1970:m.get_datetime().get_datetime()];
+            return @(m.get_datetime().get_datetime());
         case tightdb::type_String:
             return to_objc_string(m.get_string());
         case tightdb::type_Binary: {
