@@ -123,7 +123,7 @@ inline NSUInteger was_not_found(size_t n)
 inline bool nsnumber_is_like_bool(NSObject *obj)
 {
     const char* data_type = [(NSNumber *)obj objCType];
-    // @encode(BOOL) is 'B' on iOS 64 and 'c'
+    // @encode(BOOL) is 'B' on iOS 64bit and 'c' in iOS 32bit
     // objcType is always 'c'. Therefore compare to "c".
     
     return data_type[0] == 'c';

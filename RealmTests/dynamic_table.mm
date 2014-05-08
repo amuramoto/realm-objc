@@ -1026,7 +1026,7 @@ using namespace std;
         
         table[0][0] = @YES;
         XCTAssertTrue([table[0][@"first"] isKindOfClass:[NSNumber class]], @"NSNumber expected");
-        //FIXME XCTAssertTrue((strcmp([(NSNumber *)table[0][@"first"] objCType], @encode(BOOL)) == 0), @"'long long' expected");
+        XCTAssertTrue(([(NSNumber *)table[0][@"first"] objCType], 'c'), @"'long long' expected"); // @encode(BOOL) is 'B' on iOS 64bit and 'c' in iOS 32bit
         XCTAssertTrue([(NSNumber *)table[0][@"first"] boolValue], @"Value YES expected");
         XCTAssertTrue([table[0][@"first"] boolValue], @"Valye YES expected");
         
