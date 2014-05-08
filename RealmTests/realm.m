@@ -71,7 +71,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
 }
 
 - (void)testTableCreatedAfterStandaloneRealmStarted {
-    NSString *realmFilePath = @"async.realm";
+    NSString *realmFilePath = [RLMTestCase pathInAppDocumentsFolderForFileWithName:@"async.realm"];
     [[NSFileManager defaultManager] removeItemAtPath:realmFilePath error:nil];
     NSString *tableName = @"table";
     
@@ -103,7 +103,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
 }
 
 - (void)testRealmIsUpdatedAfterBackgroundUpdate {
-    NSString *realmFilePath = @"async.bg.realm";
+    NSString *realmFilePath = [RLMTestCase pathInAppDocumentsFolderForFileWithName:@"async.bg.realm"];
     [[NSFileManager defaultManager] removeItemAtPath:realmFilePath error:nil];
     NSString *tableName = @"table";
     
@@ -135,7 +135,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
 }
 
 - (void)testRealmIsUpdatedImmediatelyAfterBackgroundUpdate {
-    NSString *realmFilePath = @"async.bg.fast.realm";
+    NSString *realmFilePath = [RLMTestCase pathInAppDocumentsFolderForFileWithName:@"async.bg.fast.realm"];
     [[NSFileManager defaultManager] removeItemAtPath:realmFilePath error:nil];
     NSString *tableName = @"table";
     

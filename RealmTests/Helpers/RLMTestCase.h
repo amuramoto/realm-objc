@@ -18,4 +18,6 @@ extern NSString *const RLMTestRealmPath;
 - (RLMRealm *)realmWithTestPath;
 - (void)createTestTableWithWriteBlock:(void(^)(RLMTable *table))block;
 
++ (NSString *)pathInAppDocumentsFolderForFileWithName:(NSString*)fileName;
+
 @end

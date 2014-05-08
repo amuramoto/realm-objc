@@ -97,7 +97,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable, TestQueryAllObject);
     error = nil;
     NSFileManager *fm = [NSFileManager defaultManager];
     [fm setAttributes:@{NSFilePosixPermissions: @(0444)}
-         ofItemAtPath:RLMTestRealmPath
+         ofItemAtPath:[RLMTestCase pathInAppDocumentsFolderForFileWithName:RLMTestRealmPath]
                 error:&error];
     if (error) {
         XCTFail(@"Failed to set readonly attributes");
@@ -109,7 +109,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable, TestQueryAllObject);
     
     error = nil;
     [fm setAttributes:@{NSFilePosixPermissions: @(0644)}
-         ofItemAtPath:RLMTestRealmPath
+         ofItemAtPath:[RLMTestCase pathInAppDocumentsFolderForFileWithName:RLMTestRealmPath]
                 error:&error];
     if (error) {
         XCTFail(@"Failed to set readonly attributes");

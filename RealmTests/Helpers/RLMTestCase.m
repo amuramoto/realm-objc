@@ -16,25 +16,31 @@ NSString *const RLMTestRealmPathLock = @"test.realm.lock";
 - (void)setUp {
     // This method is run before every test method
     [super setUp];
-    [[NSFileManager defaultManager] removeItemAtPath:RLMTestRealmPath error:nil];
-    [[NSFileManager defaultManager] removeItemAtPath:RLMTestRealmPathLock error:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:[RLMTestCase pathInAppDocumentsFolderForFileWithName:RLMTestRealmPath] error:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:[RLMTestCase pathInAppDocumentsFolderForFileWithName:RLMTestRealmPathLock] error:nil];
 }
 
 + (void)tearDown {
     // This method is run after all tests in a test method have run
-    [[NSFileManager defaultManager] removeItemAtPath:RLMTestRealmPath error:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:[RLMTestCase pathInAppDocumentsFolderForFileWithName:RLMTestRealmPath] error:nil];
     [super tearDown];
 }
 
 - (RLMRealm *)realmWithTestPath {
-    return [RLMRealm realmWithPath:RLMTestRealmPath error:nil];
+    return [RLMRealm realmWithPath:[RLMTestCase pathInAppDocumentsFolderForFileWithName:RLMTestRealmPath] error:nil];
 }
 
 - (void)createTestTableWithWriteBlock:(void(^)(RLMTable *table))block {
-    RLMRealm *realm = [RLMRealm realmWithPath:RLMTestRealmPath];
+    RLMRealm *realm = [RLMRealm realmWithPath:[RLMTestCase pathInAppDocumentsFolderForFileWithName:RLMTestRealmPath]];
     [realm beginWriteTransaction];
     block([realm createTableWithName:@"table"]);
     [realm commitWriteTransaction];
+}
+
++ (NSString *)pathInAppDocumentsFolderForFileWithName:(NSString*)fileName{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    return [documentsDirectory stringByAppendingPathComponent:fileName];
 }
 
 @end
