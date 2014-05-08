@@ -9,6 +9,8 @@
 #import <realm/objc/RLMQueryFast.h>
 #import <realm/objc/RLMTableFast.h>
 
+#pragma mark - Realm Models
+
 @interface TestQueryObj : RLMRow
 
 @property (nonatomic, assign) NSInteger age;
@@ -18,7 +20,7 @@
 @implementation TestQueryObj
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryTable2, TestQueryObj);
+RLM_TABLE(TestQueryTable2, TestQueryObj);
 
 @interface TestQueryAllObj : RLMRow
 
@@ -37,7 +39,63 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryTable2, TestQueryObj);
 @implementation TestQueryAllObj
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
+RLM_TABLE(TestQueryAllTable2, TestQueryAllObj);
+
+@interface RLMMathObject : RLMRow
+@property int     IntCol;
+@property float   FloatCol;
+@property double  DoubleCol;
+@property NSDate *DateCol;
+@end
+
+@implementation RLMMathObject
+@end
+
+RLM_TABLE(RLMMathTable, RLMMathObject);
+
+@interface RLMIntObject : RLMRow
+@property int Int;
+@end
+
+@implementation RLMIntObject
+@end
+
+@interface RLMFloatObject : RLMRow
+@property float Float;
+@end
+
+@implementation RLMFloatObject
+@end
+
+@interface RLMDoubleObject : RLMRow
+@property double Double;
+@end
+
+@implementation RLMDoubleObject
+@end
+
+@interface RLMDateObject : RLMRow
+@property NSDate *date;
+@end
+
+@implementation RLMDateObject
+@end
+
+@interface RLMStringObject : RLMRow
+@property NSString *string;
+@end
+
+@implementation RLMStringObject
+@end
+
+@interface RLMDataObject : RLMRow
+@property NSData *data;
+@end
+
+@implementation RLMDataObject
+@end
+
+#pragma mark - Query Tests
 
 @interface MACtestQuery: RLMTestCase
 
@@ -48,7 +106,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
 - (void)testQuery {
     
     [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
-        TestQueryAllTable2 *table = [TestQueryAllTable2 tableInRealm:realm named:@"table"];
+        TestQueryAllTable2 *table = [realm createTableNamed:@"table" objectClass:[TestQueryAllObj class]];
         NSLog(@"Table: %@", table);
         XCTAssertNotNil(table, @"Table is nil");
         
@@ -56,7 +114,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
         NSData *bin1 = [[NSData alloc] initWithBytes:bin length:sizeof bin / 2];
         NSData *bin2 = [[NSData alloc] initWithBytes:bin length:sizeof bin];
         
-        TestQueryTable2 *subtable = [TestQueryTable2 tableInRealm:realm named:@"subtable"];
+        TestQueryTable2 *subtable = [realm createTableNamed:@"subtable" objectClass:[TestQueryObj class]];
         [subtable addRow:@[@22]];
         
         NSDate *zeroDate = [NSDate dateWithTimeIntervalSince1970:0];
@@ -99,154 +157,9 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
 
 }
 
-#define BOOL_COL   0
-#define INT_COL    1
-#define FLOAT_COL  2
-#define DOUBLE_COL 3
-#define STRING_COL 4
-#define BINARY_COL 5
-#define DATE_COL   6
-#define MIXED_COL  7
-
-- (void)testDynamic {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"BoolCol" type:RLMTypeBool];
-        [table addColumnWithName:@"IntCol" type:RLMTypeInt];
-        [table addColumnWithName:@"FloatCol" type:RLMTypeFloat];
-        [table addColumnWithName:@"DoubleCol" type:RLMTypeDouble];
-        [table addColumnWithName:@"StringCol" type:RLMTypeString];
-        [table addColumnWithName:@"BinaryCol" type:RLMTypeBinary];
-        [table addColumnWithName:@"DateCol" type:RLMTypeDate];
-        [table addColumnWithName:@"MixedCol" type:RLMTypeMixed];
-        // TODO: add Enum<T> and Subtable<T> when possible.
-        
-        const char bin[4] = { 0, 1, 2, 3 };
-        NSNumber *mixInt1   = [NSNumber numberWithLongLong:1];
-        NSString *mixString = [NSString stringWithUTF8String:"foo"];
-        NSData *bin1 = [[NSData alloc] initWithBytes:bin length:sizeof bin / 2];
-        NSData *bin2 = [[NSData alloc] initWithBytes:bin length:sizeof bin];
-        
-        // Using private method just for the sake of testing the setters below.
-        [table RLM_addEmptyRows:2];
-        
-        [table RLM_setBool:YES inColumnWithIndex:BOOL_COL atRowIndex:0];
-        [table RLM_setBool:NO inColumnWithIndex:BOOL_COL atRowIndex:1];
-        
-        [table RLM_setInt:0 inColumnWithIndex:INT_COL atRowIndex:0];
-        [table RLM_setInt:860 inColumnWithIndex:INT_COL atRowIndex:1];
-        
-        [table RLM_setFloat:0 inColumnWithIndex:FLOAT_COL atRowIndex:0];
-        [table RLM_setFloat:5.6 inColumnWithIndex:FLOAT_COL atRowIndex:1];
-        
-        [table RLM_setDouble:0 inColumnWithIndex:DOUBLE_COL atRowIndex:0];
-        [table RLM_setDouble:5.6 inColumnWithIndex:DOUBLE_COL atRowIndex:1];
-        
-        [table RLM_setString:@"" inColumnWithIndex:STRING_COL atRowIndex:0];
-        [table RLM_setString:@"foo" inColumnWithIndex:STRING_COL atRowIndex:1];
-        
-        [table RLM_setBinary:bin1 inColumnWithIndex:BINARY_COL atRowIndex:0];
-        [table RLM_setBinary:bin2 inColumnWithIndex:BINARY_COL atRowIndex:1];
-        
-        NSDate *date1 = [NSDate date];
-        NSDate *date2 = [date1 dateByAddingTimeInterval:1];
-        [table RLM_setDate:date1 inColumnWithIndex:DATE_COL atRowIndex:0];
-        [table RLM_setDate:date2 inColumnWithIndex:DATE_COL atRowIndex:1];
-        
-        [table RLM_setMixed:mixInt1 inColumnWithIndex:MIXED_COL atRowIndex:0];
-        [table RLM_setMixed:mixString inColumnWithIndex:MIXED_COL atRowIndex:1];
-        
-        // Conditions
-        NSUInteger betweenCount = [table countWhere:@"IntCol between %@", @[@859, @861]];
-        XCTAssertEqual(betweenCount, (NSUInteger)1, @"betweenInt");
-        betweenCount = [table countWhere:@"FloatCol between %@", @[@(5.5f), @(5.7f)]];
-        XCTAssertEqual(betweenCount, (NSUInteger)1, @"betweenFloat");
-        betweenCount = [table countWhere:@"DoubleCol between %@", @[@5.5, @5.7]];
-        XCTAssertEqual(betweenCount, (NSUInteger)1, @"betweenDouble");
-        betweenCount = [table countWhere:@"DateCol between %@", @[date1, date2]];
-        XCTAssertEqual(betweenCount, (NSUInteger)2, @"betweenDate");
-        
-        {
-            XCTAssertEqual([table countWhere:@"BoolCol == YES"], (NSUInteger)1, @"isEqualToBool");
-            XCTAssertEqual([table countWhere:@"IntCol == 860"], (NSUInteger)1, @"isEqualToInt");
-            NSUInteger floatCount = [table countWhere:@"FloatCol == %f", 5.6];
-            XCTAssertEqual(floatCount, (NSUInteger)1, @"isEqualToFloat");
-            XCTAssertEqual([table countWhere:@"DoubleCol == 5.6"], (NSUInteger)1, @"isEqualToDouble");
-            XCTAssertEqual([table countWhere:@"StringCol == 'foo'"], (NSUInteger)1, @"isEqualToString");
-            XCTAssertEqual([table countWhere:@"StringCol ==[c] 'Foo'"], (NSUInteger)1, @"isEqualToStringCaseNo");
-            NSUInteger dateCount = [table countWhere:@"DateCol == %@", date1];
-            XCTAssertEqual(dateCount, (NSUInteger)1, @"isEqualToDate");
-            NSUInteger binCount = [table countWhere:@"BinaryCol == %@", bin1];
-            XCTAssertEqual(binCount, (NSUInteger)1, @"isEqualToBinary");
-        }
-        
-        {
-            XCTAssertEqual([table countWhere:@"BoolCol != YES"], (NSUInteger)1, @"isNotEqualToBool");
-            XCTAssertEqual([table countWhere:@"IntCol != 860"], (NSUInteger)1, @"isNotEqualToInt");
-            NSUInteger floatCount = [table countWhere:@"FloatCol != %f", 5.6];
-            XCTAssertEqual(floatCount, (NSUInteger)1, @"isEqualToFloat");
-            XCTAssertEqual([table countWhere:@"DoubleCol != 5.6"], (NSUInteger)1, @"isNotEqualToDouble");
-            XCTAssertEqual([table countWhere:@"StringCol != 'foo'"], (NSUInteger)1, @"isNotEqualToString");
-            XCTAssertEqual([table countWhere:@"StringCol !=[c] 'Foo'"], (NSUInteger)1, @"isNotEqualToStringCaseNo");
-            NSUInteger dateCount = [table countWhere:@"DateCol != %@", date1];
-            XCTAssertEqual(dateCount, (NSUInteger)1, @"isNotEqualToDate");
-            NSUInteger binCount = [table countWhere:@"BinaryCol != %@", bin1];
-            XCTAssertEqual(binCount, (NSUInteger)1, @"isNotEqualToBinary");
-        }
-        
-        {
-            XCTAssertEqual([table countWhere:@"IntCol > 859"], (NSUInteger)1, @"isGreaterThanInt");
-            NSUInteger floatCount = [table countWhere:@"FloatCol > %f", 5.5];
-            XCTAssertEqual(floatCount, (NSUInteger)1, @"isGreaterThanFloat");
-            XCTAssertEqual([table countWhere:@"DoubleCol > 5.5"], (NSUInteger)1, @"isGreaterThanDouble");
-            NSUInteger dateCount = [table countWhere:@"DateCol > %@", date1];
-            XCTAssertEqual(dateCount, (NSUInteger)1, @"isGreaterThanDate");
-        }
-        
-        {
-            XCTAssertEqual([table countWhere:@"IntCol >= 860"], (NSUInteger)1, @"isGreaterThanOrEqualToInt");
-            NSUInteger floatCount = [table countWhere:@"FloatCol >= %f", 5.6];
-            XCTAssertEqual(floatCount, (NSUInteger)1, @"isGreaterThanOrEqualToFloat");
-            XCTAssertEqual([table countWhere:@"DoubleCol >= 5.6"], (NSUInteger)1, @"isGreaterThanOrEqualToDouble");
-            NSUInteger dateCount = [table countWhere:@"DateCol >= %@", date1];
-            XCTAssertEqual(dateCount, (NSUInteger)2, @"isGreaterThanOrEqualToDate");
-        }
-        
-        {
-            XCTAssertEqual([table countWhere:@"IntCol < 860"], (NSUInteger)1, @"isLessThanInt");
-            NSUInteger floatCount = [table countWhere:@"FloatCol < %f", 5.6];
-            XCTAssertEqual(floatCount, (NSUInteger)1, @"isLessThanFloat");
-            XCTAssertEqual([table countWhere:@"DoubleCol < 5.6"], (NSUInteger)1, @"isLessThanDouble");
-            NSUInteger dateCount = [table countWhere:@"DateCol < %@", date2];
-            XCTAssertEqual(dateCount, (NSUInteger)1, @"isLessThanDate");
-        }
-        
-        {
-            XCTAssertEqual([table countWhere:@"IntCol <= 860"], (NSUInteger)2, @"isLessThanOrEqualToInt");
-            NSUInteger floatCount = [table countWhere:@"FloatCol <= %f", 5.6];
-            XCTAssertEqual(floatCount, (NSUInteger)2, @"isLessThanOrEqualToFloat");
-            XCTAssertEqual([table countWhere:@"DoubleCol <= 5.6"], (NSUInteger)2, @"isLessThanOrEqualToDouble");
-            NSUInteger dateCount = [table countWhere:@"DateCol <= %@", date2];
-            XCTAssertEqual(dateCount, (NSUInteger)2, @"isLessThanOrEqualToDate");
-        }
-        
-        XCTAssertEqualObjects([table minOfProperty:@"IntCol" where:nil], @0, @"IntCol min");
-        XCTAssertEqualObjects([table maxOfProperty:@"IntCol" where:nil], @860, @"IntCol max");
-        XCTAssertEqualObjects([table sumOfProperty:@"IntCol" where:nil], @860, @"IntCol sum");
-        XCTAssertEqualObjects([table averageOfProperty:@"IntCol" where:nil], @430, @"IntCol avg");
-        
-        // FIXME: Support min/max on dates
-        // Realm/tightdb has whole second precision for time stamps so we need to truncate the time stamps
-        // XCTAssertEqual((time_t)[[table minOfProperty:@"DateCol" where:nil] timeIntervalSince1970], (time_t)[date1 timeIntervalSince1970], @"MinDateInColumn");
-        // XCTAssertEqual((time_t)[[table maxOfProperty:@"DateCol" where:nil] timeIntervalSince1970], (time_t)[date2 timeIntervalSince1970], @"MaxDateInColumn");
-    }];
-}
-
 - (void)testMathOperations {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"IntCol" type:RLMTypeInt];
-        [table addColumnWithName:@"FloatCol" type:RLMTypeFloat];
-        [table addColumnWithName:@"DoubleCol" type:RLMTypeDouble];
-        [table addColumnWithName:@"DateCol" type:RLMTypeDate];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[RLMMathObject class]];
         
         //======== Zero rows added ========//
         
@@ -311,18 +224,19 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
 }
 
 - (void)testFind {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"IntCol" type:RLMTypeInt];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMMathTable *table = [realm createTableNamed:@"table" objectClass:[RLMMathObject class]];
+        
         // Add 6 empty rows
         for (NSUInteger index = 0; index < 6; index++) {
             [table addRow:nil];
         }
-        table[0][@"IntCol"] = @10;
-        table[1][@"IntCol"] = @42;
-        table[2][@"IntCol"] = @27;
-        table[3][@"IntCol"] = @31;
-        table[4][@"IntCol"] = @8;
-        table[5][@"IntCol"] = @39;
+        table[0].IntCol = 10;
+        table[1].IntCol = 42;
+        table[2].IntCol = 27;
+        table[3].IntCol = 31;
+        table[4].IntCol = 8;
+        table[5].IntCol = 39;
         
         XCTAssertEqualObjects([table firstWhere:@"IntCol > 10"][@"IntCol"], @42, @"Row 1 is greater than 10");
         XCTAssertNil([table firstWhere:@"IntCol > 100"], @"No rows are greater than 100");
@@ -334,57 +248,29 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
     }];
 }
 
-- (void)testSubtableQuery {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        RLMDescriptor *d = table.descriptor;
-        RLMDescriptor *subDesc = [d addColumnTable:@"subtable"];
-        [subDesc addColumnWithName:@"subCol" type:RLMTypeBool];
-        [table addRow:nil];
-        XCTAssertEqual(table.rowCount, (NSUInteger)1,@"one row added");
-        
-        RLMTable * subTable = [table RLM_tableInColumnWithIndex:0 atRowIndex:0];
-        [subTable addRow:nil];
-        [subTable RLM_setBool:YES inColumnWithIndex:0 atRowIndex:0];
-        RLMQuery *q = [table where];
-        
-        RLMView *v = [[[[q subtableInColumnWithIndex:0] boolIsEqualTo:YES inColumnWithIndex:0] parent] findAllRows];
-        XCTAssertEqual(v.rowCount, (NSUInteger)1,@"one match");
-    }];
-}
-
-- (void)testQueryEnumeratorNoCondition {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"first" type:RLMTypeInt];
-        for(int i=0; i<10; ++i)
-            [table addRow:@[[NSNumber numberWithInt:i]]];
-        RLMQuery *query = [table where];
-        int i = 0;
-        for(RLMRow *row in query) {
-            XCTAssertEqual((int64_t)i, [(NSNumber *)row[@"first"] longLongValue], @"Wrong value");
-            ++i;
-        }
-    }];
-}
-
-- (void)testQueryEnumeratorWithCondition {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"first" type:RLMTypeInt];
-        for(int i=0; i<10; ++i)
-            [table addRow:@[[NSNumber numberWithInt:i]]];
-        RLMQuery *query = [[table where] intIsGreaterThan:-1 inColumnWithIndex:0];
-        int i = 0;
-        for(RLMRow *row in query) {
-            XCTAssertEqual((int64_t)i, [(NSNumber *)row[@"first"] longLongValue], @"Wrong value");
-            ++i;
-        }
-    }];
-}
+//- (void)testSubtableQuery {
+//    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+//        RLMDescriptor *d = table.descriptor;
+//        RLMDescriptor *subDesc = [d addColumnTable:@"subtable"];
+//        [subDesc addColumnWithName:@"subCol" type:RLMTypeBool];
+//        [table addRow:nil];
+//        XCTAssertEqual(table.rowCount, (NSUInteger)1,@"one row added");
+//        
+//        RLMTable * subTable = [table RLM_tableInColumnWithIndex:0 atRowIndex:0];
+//        [subTable addRow:nil];
+//        [subTable RLM_setBool:YES inColumnWithIndex:0 atRowIndex:0];
+//        RLMQuery *q = [table where];
+//        
+//        RLMView *v = [[[[q subtableInColumnWithIndex:0] boolIsEqualTo:YES inColumnWithIndex:0] parent] findAllRows];
+//        XCTAssertEqual(v.rowCount, (NSUInteger)1,@"one match");
+//    }];
+//}
 
 #pragma mark - Predicates
 
 - (void)testIntegerPredicates {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"int" type:RLMTypeInt];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[RLMIntObject class]];
         NSArray *ints = @[@0, @1, @2, @3];
         for (NSNumber *intNum in ints) {
             [table addRow:@[intNum]];
@@ -393,80 +279,80 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
         NSNumber *intNum = ints[1];
         
         // Lesser than
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int < %@", intNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int < %@", intNum]
                     onTable:table
                 withResults:[ints subarrayWithRange:NSMakeRange(0, 1)]
                        name:@"lesser than"
-                     column:@"int"];
-        
+                     column:@"Int"];
+
         // Lesser than or equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int <= %@", intNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int <= %@", intNum]
                     onTable:table
                 withResults:[ints subarrayWithRange:NSMakeRange(0, 2)]
                        name:@"lesser than or equal"
-                     column:@"int"];
+                     column:@"Int"];
         
         // Equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int == %@", intNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int == %@", intNum]
                     onTable:table
                 withResults:[ints subarrayWithRange:NSMakeRange(1, 1)]
                        name:@"equal"
-                     column:@"int"];
+                     column:@"Int"];
 
         // Greater than or equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int >= %@", intNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int >= %@", intNum]
                     onTable:table
                 withResults:[ints subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"greater than or equal"
-                     column:@"int"];
+                     column:@"Int"];
 
         // Greater than
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int > %@", intNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int > %@", intNum]
                     onTable:table
                 withResults:[ints subarrayWithRange:NSMakeRange(2, 2)]
                        name:@"greater than"
-                     column:@"int"];
+                     column:@"Int"];
         
         // Not equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int != %@", intNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int != %@", intNum]
                     onTable:table
                 withResults:@[ints[0], ints[2], ints[3]]
                        name:@"not equal"
-                     column:@"int"];
+                     column:@"Int"];
         
         // Between
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int between %@", @[intNum, ints.lastObject]]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int between %@", @[intNum, ints.lastObject]]
                     onTable:table
                 withResults:[ints subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"between"
-                     column:@"int"];
+                     column:@"Int"];
         
         // Between (inverse)
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int between %@", @[ints.lastObject, intNum]]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int between %@", @[ints.lastObject, intNum]]
                     onTable:table
                 withResults:@[]
                        name:@"between (inverse)"
-                     column:@"int"];
+                     column:@"Int"];
         
         // AND
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int >= %@ && int <= %@", intNum, ints.lastObject]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int >= %@ && Int <= %@", intNum, ints.lastObject]
                     onTable:table
                 withResults:[ints subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"AND"
-                     column:@"int"];
+                     column:@"Int"];
         
         // OR
-        [self testPredicate:[NSPredicate predicateWithFormat:@"int <= %@ || int >= %@", ints.firstObject, ints.lastObject]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Int <= %@ || Int >= %@", ints.firstObject, ints.lastObject]
                     onTable:table
                 withResults:@[ints.firstObject, ints.lastObject]
                        name:@"OR"
-                     column:@"int"];
+                     column:@"Int"];
     }];
 }
 
 - (void)testFloatPredicates {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"float" type:RLMTypeFloat];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[RLMFloatObject class]];
         NSArray *floats = @[@0, @1, @2, @3];
         for (NSNumber *floatNum in floats) {
             [table addRow:@[floatNum]];
@@ -475,80 +361,80 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
         NSNumber *floatNum = floats[1];
         
         // Lesser than
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float < %@", floatNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float < %@", floatNum]
                     onTable:table
                 withResults:[floats subarrayWithRange:NSMakeRange(0, 1)]
                        name:@"lesser than"
-                     column:@"float"];
+                     column:@"Float"];
         
         // Lesser than or equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float <= %@", floatNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float <= %@", floatNum]
                     onTable:table
                 withResults:[floats subarrayWithRange:NSMakeRange(0, 2)]
                        name:@"lesser than or equal"
-                     column:@"float"];
+                     column:@"Float"];
         
         // Equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float == %@", floatNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float == %@", floatNum]
                     onTable:table
                 withResults:[floats subarrayWithRange:NSMakeRange(1, 1)]
                        name:@"equal"
-                     column:@"float"];
+                     column:@"Float"];
         
         // Greater than or equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float >= %@", floatNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float >= %@", floatNum]
                     onTable:table
                 withResults:[floats subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"greater than or equal"
-                     column:@"float"];
+                     column:@"Float"];
         
         // Greater than
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float > %@", floatNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float > %@", floatNum]
                     onTable:table
                 withResults:[floats subarrayWithRange:NSMakeRange(2, 2)]
                        name:@"greater than"
-                     column:@"float"];
+                     column:@"Float"];
         
         // Not equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float != %@", floatNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float != %@", floatNum]
                     onTable:table
                 withResults:@[floats[0], floats[2], floats[3]]
                        name:@"not equal"
-                     column:@"float"];
+                     column:@"Float"];
         
         // Between
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float between %@", @[floatNum, floats.lastObject]]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float between %@", @[floatNum, floats.lastObject]]
                     onTable:table
                 withResults:[floats subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"between"
-                     column:@"float"];
+                     column:@"Float"];
         
         // Between (inverse)
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float between %@", @[floats.lastObject, floatNum]]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float between %@", @[floats.lastObject, floatNum]]
                     onTable:table
                 withResults:@[]
                        name:@"between (inverse)"
-                     column:@"float"];
+                     column:@"Float"];
         
         // AND
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float >= %@ && float <= %@", floatNum, floats.lastObject]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float >= %@ && Float <= %@", floatNum, floats.lastObject]
                     onTable:table
                 withResults:[floats subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"AND"
-                     column:@"float"];
+                     column:@"Float"];
         
         // OR
-        [self testPredicate:[NSPredicate predicateWithFormat:@"float <= %@ || float >= %@", floats.firstObject, floats.lastObject]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Float <= %@ || Float >= %@", floats.firstObject, floats.lastObject]
                     onTable:table
                 withResults:@[floats.firstObject, floats.lastObject]
                        name:@"OR"
-                     column:@"float"];
+                     column:@"Float"];
     }];
 }
 
 - (void)testDoublePredicates {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"double" type:RLMTypeDouble];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[RLMDoubleObject class]];
         NSArray *doubles = @[@0, @1, @2, @3];
         for (NSNumber *doubleNum in doubles) {
             [table addRow:@[doubleNum]];
@@ -557,80 +443,80 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
         NSNumber *doubleNum = doubles[1];
         
         // Lesser than
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double < %@", doubleNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double < %@", doubleNum]
                     onTable:table
                 withResults:[doubles subarrayWithRange:NSMakeRange(0, 1)]
                        name:@"lesser than"
-                     column:@"double"];
+                     column:@"Double"];
         
         // Lesser than or equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double <= %@", doubleNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double <= %@", doubleNum]
                     onTable:table
                 withResults:[doubles subarrayWithRange:NSMakeRange(0, 2)]
                        name:@"lesser than or equal"
-                     column:@"double"];
+                     column:@"Double"];
         
         // Equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double == %@", doubleNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double == %@", doubleNum]
                     onTable:table
                 withResults:[doubles subarrayWithRange:NSMakeRange(1, 1)]
                        name:@"equal"
-                     column:@"double"];
+                     column:@"Double"];
         
         // Greater than or equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double >= %@", doubleNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double >= %@", doubleNum]
                     onTable:table
                 withResults:[doubles subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"greater than or equal"
-                     column:@"double"];
+                     column:@"Double"];
         
         // Greater than
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double > %@", doubleNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double > %@", doubleNum]
                     onTable:table
                 withResults:[doubles subarrayWithRange:NSMakeRange(2, 2)]
                        name:@"greater than"
-                     column:@"double"];
+                     column:@"Double"];
         
         // Not equal
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double != %@", doubleNum]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double != %@", doubleNum]
                     onTable:table
                 withResults:@[doubles[0], doubles[2], doubles[3]]
                        name:@"not equal"
-                     column:@"double"];
+                     column:@"Double"];
         
         // Between
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double between %@", @[doubleNum, doubles.lastObject]]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double between %@", @[doubleNum, doubles.lastObject]]
                     onTable:table
                 withResults:[doubles subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"between"
-                     column:@"double"];
+                     column:@"Double"];
         
         // Between (inverse)
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double between %@", @[doubles.lastObject, doubleNum]]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double between %@", @[doubles.lastObject, doubleNum]]
                     onTable:table
                 withResults:@[]
                        name:@"between (inverse)"
-                     column:@"double"];
+                     column:@"Double"];
         
         // AND
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double >= %@ && double <= %@", doubleNum, doubles.lastObject]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double >= %@ && Double <= %@", doubleNum, doubles.lastObject]
                     onTable:table
                 withResults:[doubles subarrayWithRange:NSMakeRange(1, 3)]
                        name:@"AND"
-                     column:@"double"];
+                     column:@"Double"];
         
         // OR
-        [self testPredicate:[NSPredicate predicateWithFormat:@"double <= %@ || double >= %@", doubles.firstObject, doubles.lastObject]
+        [self testPredicate:[NSPredicate predicateWithFormat:@"Double <= %@ || Double >= %@", doubles.firstObject, doubles.lastObject]
                     onTable:table
                 withResults:@[doubles.firstObject, doubles.lastObject]
                        name:@"OR"
-                     column:@"double"];
+                     column:@"Double"];
     }];
 }
 
 - (void)testDatePredicates {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"date" type:RLMTypeDate];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[RLMDateObject class]];
         NSArray *dates = @[[NSDate dateWithTimeIntervalSince1970:0],
                            [NSDate dateWithTimeIntervalSince1970:1],
                            [NSDate dateWithTimeIntervalSince1970:2],
@@ -721,8 +607,8 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
 }
 
 - (void)testStringPredicates {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"string" type:RLMTypeString];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[RLMStringObject class]];
         NSArray *strings = @[@"a",
                              @"ab",
                              @"abc",
@@ -818,8 +704,8 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
 }
 
 - (void)testBinaryPredicates {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"data" type:RLMTypeBinary];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[RLMDataObject class]];
         NSArray *dataArray = @[[@"a" dataUsingEncoding:NSUTF8StringEncoding],
                                [@"ab" dataUsingEncoding:NSUTF8StringEncoding],
                                [@"abc" dataUsingEncoding:NSUTF8StringEncoding],
@@ -870,28 +756,28 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
 #pragma mark - Variadic
 
 - (void)testVariadicPredicateFormat {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        [table addColumnWithName:@"int" type:RLMTypeInt];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[RLMIntObject class]];
         NSArray *ints = @[@0, @1, @2, @3];
         for (NSNumber *intNum in ints) {
             [table addRow:@[intNum]];
         }
         
         // Variadic firstWhere
-        RLMRow *row = [table firstWhere:@"int <= %@", @1];
+        RLMRow *row = [table firstWhere:@"Int <= %@", @1];
         XCTAssertEqualObjects(@0,
-                              row[@"int"],
+                              row[@"Int"],
                               @"Variadic firstWhere predicate should return correct result");
         
         // Variadic allWhere
-        RLMView *view = [table allWhere:@"int <= %@", @1];
+        RLMView *view = [table allWhere:@"Int <= %@", @1];
         NSArray *results = @[@0, @1];
         XCTAssertEqual(view.rowCount,
                        results.count,
                        @"Variadic allWhere predicate should return correct count");
         for (NSUInteger i = 0; i < results.count; i++) {
             XCTAssertEqualObjects(results[i],
-                                  view[i][@"int"],
+                                  view[i][@"Int"],
                                   @"Variadic allWhere predicate should return correct results");
         }
     }];
@@ -903,8 +789,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable2, TestQueryAllObj);
               onTable:(RLMTable *)table
           withResults:(NSArray *)results
                  name:(NSString *)name
-               column:(NSString *)column
-{
+               column:(NSString *)column {
     RLMView *view = [table allWhere:predicate];
     XCTAssertEqual(view.rowCount,
                    results.count,

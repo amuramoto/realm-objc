@@ -153,12 +153,7 @@ typedef void(^RLMNotificationBlock)(NSString *note, RLMRealm *realm);
  
  @return A Reference to the RLMTable that was created.
  */
--(RLMTable *)createTableWithName:(NSString *)name objectClass:(Class)objClass;
-
-
--(RLMTable *)createTableWithName:(NSString*)name columns:(NSArray*)columns;
--(id)createTableWithName:(NSString *)name asTableClass:(Class)obj;
-
+-(id)createTableNamed:(NSString *)name objectClass:(Class)objClass;
 
 /**---------------------------------------------------------------------------------------
  *  @name Accessing Tables in a Realm
@@ -184,23 +179,15 @@ typedef void(^RLMNotificationBlock)(NSString *note, RLMRealm *realm);
 
 /** Accesses an RLMTable with the specified name from the Realm.
  
- It will use the specified object class when accessing rows.
- 
  @param name The name of the RLMTable you want to access in this RLMRealm.
- @param objClass The class you want to use when accessing the RLMTable.
  
  @return A reference to the RLMTable by that name; or nil if no RLMTable by that name exists in the RLMRealm.
  
  */
--(RLMTable *)tableWithName:(NSString *)name objectClass:(Class)objClass;
-
--(RLMTable *)tableWithName:(NSString *)name;
--(id)tableWithName:(NSString *)name asTableClass:(Class)obj;
--(RLMTable *)createTableWithName:(NSString *)name;
+-(id)tableNamed:(NSString *)name;
 
 
 -(NSString *)nameOfTableWithIndex:(NSUInteger)tableIndex;
--(BOOL)hasTableWithName:(NSString *)name withTableClass:(Class)obj;
 
 /**---------------------------------------------------------------------------------------
  *  @name JSON Serialization

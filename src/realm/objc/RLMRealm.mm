@@ -61,6 +61,9 @@ void throw_objc_exception(exception &ex) {
 // functionality for caching Realm instances
 static NSMutableDictionary *s_realmsPerPath;
 
+// Keep a reference to the user defaults
+static NSUserDefaults *s_userDefaults;
+
 // FIXME: In the following 3 functions, we should be identifying files by the inode,device number pair
 //  rather than by the path (since the path is not a reliable identifier). This requires additional support
 //  from the core library though, because the inode,device number pair needs to be taken from the open file
@@ -402,8 +405,7 @@ NSString *const defaultRealmFileName = @"default.realm";
     return _writeGroup ? _writeGroup : _readGroup;
 }
 
-- (RLMTable *)tableWithName:(NSString *)name
-{
+- (id)tableNamed:(NSString *)name {
     if ([name length] == 0) {
         // FIXME: Exception name must be `TDBException` according to
         // the exception naming conventions of the official Cocoa
@@ -418,7 +420,11 @@ NSString *const defaultRealmFileName = @"default.realm";
     if (!self.group->has_table(nameRef)) {
         return nil;
     }
-    RLMTable *table = [[RLMTable alloc] _initRaw];
+    
+    Class objectClass = [RLMRealm objectClassForTableName:name];
+    Class tableClass = [RLMRealm tableClassForObjectClass:objectClass];
+    
+    RLMTable *table = [[tableClass alloc] _initRaw];
     try {
         TableRef tableRef = self.group->get_table(nameRef); // Throws
         [table setNativeTable:tableRef.get()];
@@ -432,19 +438,12 @@ NSString *const defaultRealmFileName = @"default.realm";
     
     // add to objects map
     [_objects setObject:table forKey:table];
-    return table;
-}
-
-- (RLMTable *)tableWithName:(NSString *)name objectClass:(Class)objClass {
-    RLMTable *table = [self tableWithName:name];
     
     // set object class and update table columns
-    table.objectClass = objClass;
+    table.objectClass = objectClass;
     
     return table;
 }
-
-
 
 -(NSUInteger)tableCount // Overrides the property getter
 {
@@ -456,47 +455,20 @@ NSString *const defaultRealmFileName = @"default.realm";
     return self.tableCount == 0;
 }
 
--(BOOL)hasTableWithName:(NSString*)name
-{
+-(BOOL)hasTableWithName:(NSString *)name {
     return self.group->has_table(ObjcStringAccessor(name));
 }
 
-- (id)tableWithName:(NSString *)name asTableClass:(__unsafe_unretained Class)class_obj
-{
-    ObjcStringAccessor nameRef(name);
-    if (!self.group->has_table(nameRef)) {
-        return nil;
-    }
-    RLMTable *table = [[class_obj alloc] _initRaw];
-    try {
-        TableRef tableRef = self.group->get_table(nameRef); // Throws
-        [table setNativeTable:tableRef.get()];
-        table.indexPath = [NSIndexPath indexPathWithIndex:tableRef->get_index_in_parent()];
-    }
-    catch (exception &ex) {
-        throw_objc_exception(ex);
-    }
-    [table setParent:self];
-    [table setReadOnly:(self.transactionMode == RLMTransactionModeRead)];
-    [_objects setObject:table forKey:table];
-
-    return table;
-}
-
--(BOOL)hasTableWithName:(NSString *)name withTableClass:(__unsafe_unretained Class)class_obj
-{
-    if (!self.group->has_table(ObjcStringAccessor(name))) {
-        return NO;
-    }
-    RLMTable *table = [self tableWithName:name asTableClass:class_obj];
-    return table != nil;
-}
-
--(RLMTable *)createTableWithName:(NSString*)name
-{
+- (id)createTableNamed:(NSString *)name objectClass:(Class)objClass {
     if ([name length] == 0) {
         @throw [NSException exceptionWithName:@"realm:table_name_exception"
                                        reason:@"Name must be a non-empty NSString"
+                                     userInfo:nil];
+    }
+    
+    if (!objClass || [objClass superclass] != [RLMRow class]) {
+        @throw [NSException exceptionWithName:@"realm:object_class_exception"
+                                       reason:@"Object class must be subclass of RLMRow"
                                      userInfo:nil];
     }
     
@@ -512,87 +484,24 @@ NSString *const defaultRealmFileName = @"default.realm";
                                      userInfo:nil];
     }
     
-    RLMTable *table = [[RLMTable alloc] _initRaw];
-    if (TIGHTDB_UNLIKELY(!table))
+    Class tableClass = [RLMRealm tableClassForObjectClass:objClass];
+    
+    RLMTable *table = [[tableClass alloc] _initRaw];
+    if (TIGHTDB_UNLIKELY(!table)) {
         return nil;
+    }
     REALM_EXCEPTION_HANDLER_CORE_EXCEPTION(
                                            tightdb::TableRef tableRef = self.group->get_table(ObjcStringAccessor(name));
                                            [table setNativeTable:tableRef.get()];
                                            )
     [table setParent:self];
     [_objects setObject:table forKey:table];
-
-    return table;
-}
-
-- (RLMTable *)createTableWithName:(NSString *)name objectClass:(Class)objClass {
-    RLMTable *table = [self createTableWithName:name];
     
     // set object class and update table columns
     table.objectClass = objClass;
     
-    return table;
-}
-
--(RLMTable *)createTableWithName:(NSString*)name columns:(NSArray*)columns
-{
-    RLMTable *table = [self createTableWithName:name];
+    [RLMRealm setObjectClass:objClass forTableName:name];
     
-    //Set columns
-    tightdb::TableRef nativeTable = [table getNativeTable].get_table_ref();
-    if (!set_columns(nativeTable, columns)) {
-        // Parsing the schema failed
-        //TODO: More detailed error msg in exception
-        @throw [NSException exceptionWithName:@"realm:invalid_columns"
-                                       reason:@"The supplied list of columns was invalid"
-                                     userInfo:nil];
-    }
-    
-    return table;
-}
-
-// FIXME: Check that the specified class derives from Table.
--(id)createTableWithName:(NSString*)name asTableClass:(__unsafe_unretained Class)class_obj
-{
-    if ([name length] == 0) {
-        @throw [NSException exceptionWithName:@"realm:table_name_exception"
-                                       reason:@"Name must be a non-empty NSString"
-                                     userInfo:nil];
-    }
-    
-    if (self.transactionMode != RLMTransactionModeWrite) {
-        @throw [NSException exceptionWithName:@"realm:core_read_only_exception"
-                                       reason:@"Realm is read-only."
-                                     userInfo:nil];
-    }
-    
-    if ([self hasTableWithName:name]) {
-        @throw [NSException exceptionWithName:@"realm:table_with_name_already_exists"
-                                       reason:[NSString stringWithFormat:@"A table with the name '%@' already exists in the realm.", name]
-                                     userInfo:nil];
-    }
-    
-    RLMTable *table = [[class_obj alloc] _initRaw];
-    if (TIGHTDB_UNLIKELY(!table))
-        return nil;
-    bool was_created;
-    REALM_EXCEPTION_HANDLER_CORE_EXCEPTION(
-                                           tightdb::TableRef tableRef = self.group->get_table(ObjcStringAccessor(name), was_created);
-                                           [table setNativeTable:tableRef.get()];)
-    [table setParent:self];
-    [table setReadOnly:(self.transactionMode == RLMTransactionModeRead)];
-    
-    if (was_created) {
-        if (![table _addColumns])
-            return nil;
-    }
-    else {
-        if (![table _checkType])
-            return nil;
-    }
-    
-    [_objects setObject:table forKey:table];
-
     return table;
 }
 
@@ -609,6 +518,31 @@ NSString *const defaultRealmFileName = @"default.realm";
     string str = out.str();
     
     return [NSString stringWithUTF8String:str.c_str()];
+}
+
+#pragma mark - Name/TableClass/ObjectClass Associations
+
++ (Class)tableClassForObjectClass:(Class)objClass {
+    if ([objClass respondsToSelector:@selector(tableClass)]) {
+        return [objClass performSelector:@selector(tableClass)];
+    }
+    return [RLMTable class];
+}
+
++ (Class)objectClassForTableName:(NSString *)tableName {
+    if (!s_userDefaults) {
+        s_userDefaults = [NSUserDefaults standardUserDefaults];
+    }
+    return NSClassFromString([s_userDefaults stringForKey:tableName]);
+}
+
++ (void)setObjectClass:(Class)objClass forTableName:(NSString *)tableName {
+    if (!s_userDefaults) {
+        s_userDefaults = [NSUserDefaults standardUserDefaults];
+    }
+    [s_userDefaults setObject:NSStringFromClass(objClass)
+                       forKey:tableName];
+    [s_userDefaults synchronize];
 }
 
 @end

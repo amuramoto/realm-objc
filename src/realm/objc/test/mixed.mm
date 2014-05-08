@@ -21,7 +21,7 @@
 @implementation MixedObject
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MixedTable, MixedObject);
+RLM_TABLE(MixedTable, MixedObject);
 
 @interface SubMixedObject : RLMRow
 
@@ -33,11 +33,11 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MixedTable, MixedObject);
 @implementation SubMixedObject
 @end
 
+RLM_TABLE(SubMixedTable, SubMixedObject);
+
 @interface MACTestMixed : RLMTestCase
 
 @end
-
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(SubMixedTable, SubMixedObject);
 
 @implementation MACTestMixed
 
@@ -89,9 +89,9 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(SubMixedTable, SubMixedObject);
     XCTAssertEqual([mixedDate1 isEqual:mixedDate2], NO,  @"Mixed with different timestamps should be different");
 
     [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
-        MixedTable    *table1 = [MixedTable tableInRealm:realm named:@"table1"];
-        SubMixedTable *table2 = [SubMixedTable tableInRealm:realm named:@"table2"];
-        SubMixedTable *table3 = [SubMixedTable tableInRealm:realm named:@"table3"];
+        RLMTable *table1 = [realm createTableNamed:@"table1" objectClass:[MixedObject class]];
+        RLMTable *table2 = [realm createTableNamed:@"table2" objectClass:[SubMixedObject class]];
+        RLMTable *table3 = [realm createTableNamed:@"table3" objectClass:[SubMixedObject class]];
         [table1 addRow:@[@YES, mixedBool1, @54]];
         [table2 addRow:@[@YES, @54]];
         [table3 addRow:@[@YES, @54]];
@@ -141,7 +141,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(SubMixedTable, SubMixedObject);
 - (void)testMixed
 {
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
-        SubMixedTable *tableSub = [SubMixedTable tableInRealm:realm named:@"table"];
+        SubMixedTable *tableSub = (SubMixedTable *)[realm createTableNamed:@"table" objectClass:[SubMixedObject class]];
         XCTAssertTrue([tableSub isKindOfClass:[RLMTable class]], @"RLMTable excepted");
         
         // Add some rows
@@ -153,7 +153,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(SubMixedTable, SubMixedObject);
         
 
         // Create new table in realm
-        MixedTable *table = [MixedTable tableInRealm:realm named:@"mixedTable"];
+        MixedTable *table = [realm createTableNamed:@"mixedTable" objectClass:[MixedObject class]];
         
         // Add some rows
         [table addRow:@[@YES, @"Jens", @50]];
@@ -164,7 +164,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(SubMixedTable, SubMixedObject);
         // [table addRow:@[@YES, tableSub, @54]];
         [table addRow:@[@YES, [NSDate date], @50]];
 
-        MixedTable *tableRetrieved = [MixedTable tableInRealm:realm named:@"mixedTable"];
+        MixedTable *tableRetrieved = [realm tableNamed:@"mixedTable"];
         
         XCTAssertEqual([tableRetrieved rowCount], (NSUInteger)5, @"5 rows expected");
         XCTAssertTrue([tableRetrieved[0].other isKindOfClass:[NSString class]], @"NSString excepted");
@@ -188,7 +188,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(SubMixedTable, SubMixedObject);
 -(void)testMixedValidate
 {
     [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
-        MixedTable *table = [MixedTable tableInRealm:realm named:@"table"];
+        RLMTable *table = [realm createTableNamed:@"table" objectClass:[MixedObject class]];
         XCTAssertThrows(([table addRow:@[@YES, @[@1, @2], @7]]), @"Mixed cannot be an NSArray");
         XCTAssertThrows(([table addRow:@[@YES, @{@"key": @7}, @11]]), @"Mixed cannot be an NSDictionary");
     }];

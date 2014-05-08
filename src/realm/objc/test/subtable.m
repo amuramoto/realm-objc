@@ -17,7 +17,7 @@
 @implementation SubObject
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(SubTable, SubObject)
+RLM_TABLE(SubTable, SubObject)
 
 @interface MainObject : RLMRow
 @property NSString * First;
@@ -28,7 +28,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(SubTable, SubObject)
 @implementation MainObject
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MainTable, MainObject)
+RLM_TABLE(MainTable, MainObject)
 
 
 // main and subtable definitions derived from nsobject
@@ -78,7 +78,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MainTable, MainObject)
 {    
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
         // Create new table in group
-        MainTable *people = [MainTable tableInRealm:realm named:@"employees"];
+        MainTable *people = [realm createTableNamed:@"employees" objectClass:[MainObject class]];
         
         // FIXME: Add support for specifying a subtable to the 'add'
         // method. The subtable must then be copied into the parent
@@ -102,7 +102,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MainTable, MainObject)
 - (void)testSubtableSimple {
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
         // Create new table in group
-        RLMTable *people = [realm createTableWithName:@"employees" objectClass:MainProxied.class];
+        RLMTable *people = [realm createTableNamed:@"employees" objectClass:MainProxied.class];
         
         // FIXME: Add support for specifying a subtable to the 'add'
         // method. The subtable must then be copied into the parent
@@ -126,25 +126,8 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MainTable, MainObject)
 - (void)testBadSubtable {
     
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {    
-        XCTAssertThrows([realm createTableWithName:@"badTable" objectClass:UnspecifiedSubObject.class], @"Shoud throw exception");
+        XCTAssertThrows([realm createTableNamed:@"badTable" objectClass:UnspecifiedSubObject.class], @"Shoud throw exception");
 	}];
-}
-
-- (void) testDescriptor
-{
-    [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
-        
-    RLMTable *t = [realm createTableWithName:@"table"];
-    RLMDescriptor *d = t.descriptor;
-    RLMDescriptor *subDesc = [d addColumnTable:@"subtable"];
-    
-    XCTAssertEqual(t.columnCount, (NSUInteger)1, @"One column added");
-    XCTAssertEqual(subDesc.columnCount, (NSUInteger)0, @"0 columns in subtable");
-    
-    NSUInteger subTablColIndex = [subDesc addColumnWithName:@"subCol" type:RLMTypeBool];
-    XCTAssertEqual(subDesc.columnCount, (NSUInteger)1, @"Col count on subtable should be 1");
-    XCTAssertEqual(subTablColIndex, (NSUInteger)0, @"col index of column should be 0");
-    }];
 }
 
 @end

@@ -9,17 +9,15 @@
 #import <realm/objc/Realm.h>
 #import "XCTestCase+AsyncTesting.h"
 
-@interface RLMTestObject : RLMRow
+@interface RLMTestObject3 : RLMRow
 
 @property (nonatomic, copy) NSString *column;
 
 @end
 
-@implementation RLMTestObject
+@implementation RLMTestObject3
 
 @end
-
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
 
 @interface RLMRealmTests : RLMTestCase
 
@@ -41,7 +39,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable, RLMTestObject);
 @implementation JSONRealmTestType
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
+RLM_TABLE(JSONRealmTestTable, JSONRealmTestType)
 
 @implementation RLMRealmTests
 
@@ -59,13 +57,13 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
     NSError *error = nil;
     
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
-        [realm createTableWithName:tableName];
+        [realm createTableNamed:tableName objectClass:[RLMTestObject3 class]];
     }];
     
     XCTAssertNil(error, @"RLMRealm error should be nil after write block");
     
     RLMRealm *realm = [self realmWithTestPath];
-    RLMTable *table = [realm tableWithName:tableName];
+    RLMTable *table = [realm tableNamed:tableName];
     
     XCTAssertNotNil(table, @"pre-existing table read from RLMRealm should not be nil");
     XCTAssertEqual([table class], [RLMTable class], @"pre-existing table read from \
@@ -73,19 +71,17 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
 }
 
 - (void)testCanReadPreviouslyCreatedTypedTable {
-    NSString *tableName = @"table";
-    
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
-        [realm createTableWithName:tableName asTableClass:[RLMTestTable class]];
+        [realm createTableNamed:@"table" objectClass:[JSONRealmTestType class]];
     }];
     
     RLMRealm *realm = [self realmWithTestPath];
-    RLMTestTable *table = [realm tableWithName:tableName asTableClass:[RLMTestTable class]];
+    JSONRealmTestTable *table = [realm tableNamed:@"table"];
     
     XCTAssertNotNil(table, @"pre-existing typed table read from RLMRealm should not be nil");
     XCTAssertEqual([table class],
-                   [RLMTestTable class],
-                   @"pre-existing typed table read from RLMRealm should be of class RLMTestTable");
+                   [JSONRealmTestTable class],
+                   @"pre-existing typed table read from RLMRealm should be of class JSONRealmTestTable");
 }
 
 - (void)testTableCreatedAfterStandaloneRealmStarted {
@@ -100,12 +96,12 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
     [realm addNotification:^(NSString *note, RLMRealm * realm) {
         XCTAssertEqualObjects(note, RLMRealmDidChangeNotification, @"Notification type");
         notificationFired = YES;
-        table = [realm tableWithName:tableName];
+        table = [realm tableNamed:tableName];
         [self notify:XCTAsyncTestCaseStatusSucceeded];
     }];
     
     [realm writeUsingBlock:^(RLMRealm *realm) {
-        [realm createTableWithName:tableName];
+        [realm createTableNamed:tableName objectClass:[RLMTestObject3 class]];
     }];
 
     [self waitForTimeout:2.0f];
@@ -134,7 +130,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
     dispatch_queue_t queue = dispatch_queue_create("background", 0);
     dispatch_async(queue, ^{
         [[RLMRealm realmWithPath:realmFilePath error:nil] writeUsingBlock:^(RLMRealm *realm) {
-            [realm createTableWithName:tableName];
+            [realm createTableNamed:tableName objectClass:[RLMTestObject3 class]];
         }];
     });
     
@@ -142,7 +138,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
     
     XCTAssertTrue(notificationFired, @"A notification should have fired after a table was created");
     
-    RLMTable *table = [realm tableWithName:tableName];
+    RLMTable *table = [realm tableNamed:tableName];
     XCTAssertNotNil(table, @"The RLMRealm should be able to read a newly \
                     created table after a RLMRealmDidChangeNotification was sent");
 }
@@ -164,7 +160,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
     dispatch_queue_t queue = dispatch_queue_create("background", 0);
     dispatch_async(queue, ^{
         [[RLMRealm realmWithPath:realmFilePath error:nil] writeUsingBlock:^(RLMRealm *realm) {
-            [realm createTableWithName:tableName];
+            [realm createTableNamed:tableName objectClass:[RLMTestObject3 class]];
         }];
     });
     
@@ -173,50 +169,50 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
     
     XCTAssertTrue(notificationFired, @"A notification should have fired immediately a table was created in the background");
     
-    RLMTable *table = [realm tableWithName:tableName];
+    RLMTable *table = [realm tableNamed:tableName];
     XCTAssertNotNil(table, @"The RLMRealm should be able to read a newly \
                     created table after a RLMRealmDidChangeNotification was sent");
 }
-
-/* FIXME: disabled until we have per file compile options
-- (void)testRealmWriteImplicitCommit
-{
-    RLMRealm * realm = [self realmWithTestPath];
-    [realm beginWriteTransaction];
-    RLMTable *table = [realm createTableWithName:@"table"];
-    [table addColumnWithName:@"col0" type:RLMTypeInt];
-    [realm commitWriteTransaction];
-    
-    @autoreleasepool {
-        [realm beginWriteTransaction];
-        [table addRow:@[@10]];
-        
-        // make sure we can see the new row on the write thread
-        XCTAssertTrue([table rowCount] == 1, @"Rows were added");
-        
-        // make sure we can't see the new row in another thread
-        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            RLMRealm *bgrealm = [self realmWithTestPath];
-            RLMTable *table = [bgrealm tableWithName:@"table"];
-            XCTAssertTrue([table rowCount] == 0, @"Don't see the new row");
-            [self notify:XCTAsyncTestCaseStatusSucceeded];
-        });
-        
-        [self waitForStatus:XCTAsyncTestCaseStatusSucceeded timeout:2.0f];
-    }
-    
-    // make sure implicit commit took place
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        RLMRealm *bgrealm = [self realmWithTestPath];
-        RLMTable *table = [bgrealm tableWithName:@"table"];
-        XCTAssertTrue([table rowCount] == 1, @"See the new row");
-        [self notify:XCTAsyncTestCaseStatusSucceeded];
-    });
-    
-    [self waitForStatus:XCTAsyncTestCaseStatusSucceeded timeout:2.0f];
-}
- */
-
+//
+///* FIXME: disabled until we have per file compile options
+//- (void)testRealmWriteImplicitCommit
+//{
+//    RLMRealm * realm = [self realmWithTestPath];
+//    [realm beginWriteTransaction];
+//    RLMTable *table = [realm createTableWithName:@"table"];
+//    [table addColumnWithName:@"col0" type:RLMTypeInt];
+//    [realm commitWriteTransaction];
+//    
+//    @autoreleasepool {
+//        [realm beginWriteTransaction];
+//        [table addRow:@[@10]];
+//        
+//        // make sure we can see the new row on the write thread
+//        XCTAssertTrue([table rowCount] == 1, @"Rows were added");
+//        
+//        // make sure we can't see the new row in another thread
+//        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+//            RLMRealm *bgrealm = [self realmWithTestPath];
+//            RLMTable *table = [bgrealm tableWithName:@"table"];
+//            XCTAssertTrue([table rowCount] == 0, @"Don't see the new row");
+//            [self notify:XCTAsyncTestCaseStatusSucceeded];
+//        });
+//        
+//        [self waitForStatus:XCTAsyncTestCaseStatusSucceeded timeout:2.0f];
+//    }
+//    
+//    // make sure implicit commit took place
+//    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+//        RLMRealm *bgrealm = [self realmWithTestPath];
+//        RLMTable *table = [bgrealm tableWithName:@"table"];
+//        XCTAssertTrue([table rowCount] == 1, @"See the new row");
+//        [self notify:XCTAsyncTestCaseStatusSucceeded];
+//    });
+//    
+//    [self waitForStatus:XCTAsyncTestCaseStatusSucceeded timeout:2.0f];
+//}
+// */
+//
 - (void)testRealmOnMainThreadDoesntThrow {
     XCTAssertNoThrow([self realmWithTestPath], @"Calling \
                      +realmWithPath on the main thread shouldn't throw an exception.");
@@ -252,18 +248,18 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
     XCTAssertFalse([realm hasTableWithName:tableName], @"Table 'test' shouldn't exist");
     XCTAssertFalse([realm hasTableWithName:tableName], @"Table 'test' still shouldn't exist \
                    after checking for its existence");
-    XCTAssertNil([realm tableWithName:tableName], @"Table 'test' should be nil \
+    XCTAssertNil([realm tableNamed:tableName], @"Table 'test' should be nil \
                  if requested from the realm");
     
     // Tables should exist after being created
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
-        [realm createTableWithName:tableName];
+        [realm createTableNamed:tableName objectClass:[RLMTestObject3 class]];
     }];
     
     RLMRealm *realm2 = [self realmWithTestPath];
     XCTAssertTrue([realm2 hasTableWithName:tableName], @"Table 'test' should exist \
                   after being created");
-    XCTAssertNotNil([realm2 tableWithName:tableName], @"Table 'test' shouldn't be nil");
+    XCTAssertNotNil([realm2 tableNamed:tableName], @"Table 'test' shouldn't be nil");
 }
 
 - (void)testToJSONString {
@@ -271,8 +267,8 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(JSONRealmTestTable, JSONRealmTestType)
     RLMRealm *realm = [self realmWithTestPath];
     
     [realm writeUsingBlock:^(RLMRealm *realm) {
-        JSONRealmTestTable *table = [JSONRealmTestTable tableInRealm:realm
-                                                               named:@"test"];
+        JSONRealmTestTable *table = [realm createTableNamed:@"test"
+                                                objectClass:[JSONRealmTestType class]];
         
         const char bin[4] = { 0, 1, 2, 3 };
         NSData *binary = [[NSData alloc] initWithBytes:bin length:sizeof bin];

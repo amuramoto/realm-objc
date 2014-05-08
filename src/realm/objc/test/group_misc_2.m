@@ -23,7 +23,7 @@
 @implementation MyObject
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MyTable, MyObject);
+RLM_TABLE(MyTable, MyObject);
 
 @interface MyObject2 : RLMRow
 
@@ -35,19 +35,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MyTable, MyObject);
 @implementation MyObject2
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(MyTable2, MyObject2);
-
-@interface QueryObject : RLMRow
-
-@property (nonatomic, assign) NSInteger a;
-@property (nonatomic, copy) NSString *b;
-
-@end
-
-@implementation QueryObject
-@end
-
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(QueryTable, QueryObject);
+RLM_TABLE(MyTable2, MyObject2);
 
 @interface MACTestRealmMisc2 : RLMTestCase
 
@@ -57,7 +45,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(QueryTable, QueryObject);
 
 - (void)testRealm_Misc2 {
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
-        MyTable *table = [MyTable tableInRealm:realm named:@"table"];
+        MyTable *table = (MyTable *)[realm createTableNamed:@"table" objectClass:[MyObject class]];
         
         // Add some rows
         [table addRow:@[@"John", @20, @YES, @0]];
@@ -74,7 +62,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(QueryTable, QueryObject);
     
         //------------------------------------------------------
 
-        MyTable2* table2 = [MyTable2 tableInRealm:realm named:@"table2"];
+        MyTable2* table2 = (MyTable2 *)[realm createTableNamed:@"table2" objectClass:[MyObject2 class]];
         
         // Add some rows
         [table2 addRow:@[@20, @YES]];
@@ -102,7 +90,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(QueryTable, QueryObject);
         
         // Load a realm from disk (and print contents)
         RLMRealm * fromDisk = [self realmWithTestPath];
-        MyTable* diskTable = [MyTable tableInRealm:fromDisk named:@"table"];
+        MyTable* diskTable = (MyTable *)[fromDisk tableNamed:@"table"];
         
         for (NSUInteger i = 0; i < diskTable.rowCount; i++) {
             MyObject *object = diskTable[i];
@@ -110,58 +98,6 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(QueryTable, QueryObject);
             NSLog(@"%zu: %ld", i, (long)object.age);
         }
     }];
-}
-
-// Tables can contain other tables, however this is not yet supported
-// by the high level API. The following illustrates how to do it
-// through the low level API.
-- (void)testSubtables {
-    [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
-        RLMTable *table = [realm createTableWithName:@"table"];
-        
-        // Specify the table type
-        {
-            RLMDescriptor * desc = table.descriptor;
-            [desc addColumnWithName:@"int" type:RLMTypeInt];
-            {
-                RLMDescriptor * subdesc = [desc addColumnTable:@"tab"];
-                [subdesc addColumnWithName:@"int" type:RLMTypeInt];
-            }
-            [desc addColumnWithName:@"mix" type:RLMTypeMixed];
-        }
-        
-        int COL_TABLE_INT = 0;
-        int COL_TABLE_TAB = 1;
-        int COL_TABLE_MIX = 2;
-        int COL_SUBTABLE_INT = 0;
-        
-        // Add a row to the top level table
-        [table addRow:nil];
-        [table RLM_setInt:700 inColumnWithIndex:COL_TABLE_INT atRowIndex:0];
-        
-        // Add two rows to the subtable
-        RLMTable* subtable = [table RLM_tableInColumnWithIndex:COL_TABLE_TAB atRowIndex:0];
-        [subtable addRow:nil];
-        
-        [subtable RLM_setInt:800 inColumnWithIndex:COL_SUBTABLE_INT atRowIndex:0];
-        [subtable addRow:nil];
-        [subtable RLM_setInt:801 inColumnWithIndex:COL_SUBTABLE_INT atRowIndex:1];
-        
-        // Make the mixed values column contain another subtable
-        RLMTable *subtable2 = [realm createTableWithName:@"subtable2"];
-        [table RLM_setMixed:subtable2 inColumnWithIndex:COL_TABLE_MIX atRowIndex:0];
-    }];
-    
-//    Fails!!!
-//    // Specify its type
-//    OCTopLevelTable* subtable2 = [table getTopLevelTable:COL_TABLE_MIX ndx:0];
-//    {
-//        RLMDescriptor* desc = [subtable2 getDescriptor];
-//        [desc addColumnWithType:RLMTypeInt andName:@"int"];
-//    }
-//    // Add a row to it
-//    [subtable2 addEmptyRow];
-//    [subtable2 set:COL_SUBTABLE_INT ndx:0 value:900];
 }
 
 @end

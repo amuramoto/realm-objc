@@ -20,7 +20,7 @@
 @implementation RLMTestObj2
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable2, RLMTestObj2);
+RLM_TABLE(RLMTestTable2, RLMTestObj2);
 
 @interface MACTestRealm : RLMTestCase
 
@@ -35,7 +35,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable2, RLMTestObj2);
 
     // Create new table in realm
     [realm beginWriteTransaction];
-    RLMTestTable2 *t = [RLMTestTable2 tableInRealm:realm named:@"test"];
+    RLMTestTable2 *t = (RLMTestTable2 *)[realm createTableNamed:@"test" objectClass:[RLMTestObj2 class]];
 
     // Verify
     XCTAssertEqual(t.columnCount, (NSUInteger)2, @"Should have 2 columns");
@@ -47,18 +47,18 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestTable2, RLMTestObj2);
 
     // Verify
     RLMRealm *realm2 = [self realmWithTestPath];
-    RLMTestTable2 *t2 = [RLMTestTable2 tableInRealm:realm2 named:@"test"];
+    RLMTestTable2 *t2 = (RLMTestTable2 *)[realm2 tableNamed:@"test"];
     XCTAssertEqual(t2.rowCount, (NSUInteger)1, @"test table should have one row");
 }
 
 - (void)testGetTable {
-    XCTAssertNil([[self realmWithTestPath] tableWithName:@"noTable"], @"Table does not exist");
+    XCTAssertNil([[self realmWithTestPath] tableNamed:@"noTable"], @"Table does not exist");
 }
 
 - (void)testRealmTableCount {
     XCTAssertEqual([[self realmWithTestPath] tableCount], (NSUInteger)0, @"No tables added");
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
-        [realm createTableWithName:@"tableName"];
+        [realm createTableNamed:@"table" objectClass:[RLMTestObj2 class]];
     }];
     XCTAssertEqual([[self realmWithTestPath] tableCount], (NSUInteger)1, @"1 table added");
 }

@@ -7,6 +7,7 @@
 //
 
 #import "RLMTestCase.h"
+#import <realm/objc/Realm.h>
 
 NSString *const RLMTestRealmPath = @"test.realm";
 NSString *const RLMTestRealmPathLock = @"test.realm.lock";
@@ -23,18 +24,12 @@ NSString *const RLMTestRealmPathLock = @"test.realm.lock";
 + (void)tearDown {
     // This method is run after all tests in a test method have run
     [[NSFileManager defaultManager] removeItemAtPath:RLMTestRealmPath error:nil];
+    [[NSFileManager defaultManager] removeItemAtPath:RLMTestRealmPathLock error:nil];
     [super tearDown];
 }
 
 - (RLMRealm *)realmWithTestPath {
     return [RLMRealm realmWithPath:RLMTestRealmPath error:nil];
-}
-
-- (void)createTestTableWithWriteBlock:(void(^)(RLMTable *table))block {
-    RLMRealm *realm = [RLMRealm realmWithPath:RLMTestRealmPath];
-    [realm beginWriteTransaction];
-    block([realm createTableWithName:@"table"]);
-    [realm commitWriteTransaction];
 }
 
 @end

@@ -10,17 +10,26 @@
 #import <realm/objc/Realm.h>
 #import <realm/objc/RLMRealm.h>
 
+@interface RLMTestSubtableObj : RLMRow
+@property BOOL hired;
+@property int age;
+@end
+
+@implementation RLMTestSubtableObj
+@end
+
+RLM_TABLE(RLMTestSubtable, RLMTestSubtableObj);
+
 @interface RLMTestObj : RLMRow
-
-@property (nonatomic, assign) BOOL hired;
-@property (nonatomic, assign) int age;
-
+@property BOOL hired;
+@property int age;
+@property RLMTestSubtable *subtable;
 @end
 
 @implementation RLMTestObj
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestSubtable, RLMTestObj);
+RLM_TABLE(RLMTestTable, RLMTestObj);
 
 @interface MACTestGetSubtable: RLMTestCase
 
@@ -30,26 +39,14 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(RLMTestSubtable, RLMTestObj);
 
 - (void)testGetSubtable
 {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        // Create table with all column types
-        RLMDescriptor * desc = table.descriptor;
-        [desc addColumnWithName:@"Outer" type:RLMTypeBool];
-        [desc addColumnWithName:@"Number" type:RLMTypeInt];
-        RLMDescriptor * subdesc = [desc addColumnTable:@"RLMTestSubtable"];
-        [subdesc addColumnWithName:@"hired" type:RLMTypeBool];
-        [subdesc addColumnWithName:@"age" type:RLMTypeInt];
+    [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
+        RLMTestTable *table = (RLMTestTable *)[realm createTableNamed:@"table" objectClass:[RLMTestObj class]];
         
-        {
-            [table addRow:@[@NO, @10, @[]]];
-            RLMTable *subtable = table.lastRow[@"RLMTestSubtable"];
-            [subtable addRow:@[@YES, @42]];
-        }
+        [table addRow:@[@NO, @10, @[]]];
+        [table.lastRow.subtable addRow:@[@YES, @42]];
         
-        {
-            RLMTable *subtable = table.lastRow[@"RLMTestSubtable"];
-            RLMTestObj *obj = subtable.firstRow;
-            XCTAssertEqual([obj[@"age"] integerValue], (NSInteger)42, @"Sub table row should be 42");
-        }
+        RLMTestSubtableObj *obj = table.lastRow.subtable.firstRow;
+        XCTAssertEqual(obj.age, (int)42, @"Sub table row should be 42");
     }];
 }
 

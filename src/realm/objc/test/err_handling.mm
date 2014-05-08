@@ -23,7 +23,7 @@
 @implementation PeopleErrObject
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(PeopleErrTable, PeopleErrObject);
+RLM_TABLE(PeopleErrTable, PeopleErrObject);
 
 @interface TestQueryObject : RLMRow
 
@@ -34,7 +34,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(PeopleErrTable, PeopleErrObject);
 @implementation TestQueryObject
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryTable, TestQueryObject);
+RLM_TABLE(TestQueryTable, TestQueryObject);
 
 @interface TestQueryAllObject : RLMRow
 
@@ -52,7 +52,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryTable, TestQueryObject);
 @implementation TestQueryAllObject
 @end
 
-RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable, TestQueryAllObject);
+RLM_TABLE(TestQueryAllTable, TestQueryAllObject);
 
 @interface MACTestErrHandling: RLMTestCase
 
@@ -68,7 +68,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable, TestQueryAllObject);
 
     [[self realmWithTestPath] writeUsingBlock:^(RLMRealm *realm) {
         // Create new table in realm
-        RLMTable* people = [realm createTableWithName:@"employees" objectClass:[PeopleErrObject class]];
+        RLMTable* people = [realm createTableNamed:@"employees" objectClass:[PeopleErrObject class]];
         
         // No longer supports errors, the tes may be redundant
         // Add some rows
@@ -117,167 +117,157 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable, TestQueryAllObject);
     RLMRealm *fromDisk = [self realmWithTestPath];
     XCTAssertNotNil(fromDisk, @"realm from disk should be valid");
 
-    PeopleErrTable *diskTable = [fromDisk tableWithName:@"employees" asTableClass:[PeopleErrTable class]];
+    RLMTable *diskTable = [fromDisk tableNamed:@"employees"];
 
     // Fake readonly.
-    [((RLMTable*)diskTable) setReadOnly:YES];
+    [diskTable setReadOnly:YES];
 
     NSLog(@"Disktable size: %zu", [diskTable rowCount]);
-
-//    No longer support for errors here
-//    error = nil;
-//    if (![diskTable addName:@"Anni" Age:54 Hired:YES error:&error]) {
-//        NSLog(@"%@", [error localizedDescription]);
-//    } else {
-//        XCTFail(@"addName to readonly should have failed.");
-//    }
+}
 //
-//    NSLog(@"Disktable size: %zu", [diskTable rowCount]);
-}
-
-- (void)testErrorInsert {
-    [self createTestTableWithWriteBlock:^(RLMTable *table) {
-        // Create table with all column types
-        RLMDescriptor * desc = [table descriptor];
-        if ([desc addColumnWithName:@"int" type:RLMTypeInt] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        if ([desc addColumnWithName:@"bool" type:RLMTypeBool] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        
-        if ([desc addColumnWithName:@"date" type:RLMTypeDate] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        if ([desc addColumnWithName:@"string" type:RLMTypeString] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        if ([desc addColumnWithName:@"string_long" type:RLMTypeString] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        if ([desc addColumnWithName:@"string_enum" type:RLMTypeString] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        if ([desc addColumnWithName:@"binary" type:RLMTypeBinary] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        if ([desc addColumnWithName:@"mixed" type:RLMTypeMixed] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        RLMDescriptor * subdesc;
-        if (!(subdesc = [desc addColumnTable:@"tables"])) {
-            XCTFail(@"addColumn failed.");
-        }
-        if ([subdesc addColumnWithName:@"sub_first" type:RLMTypeInt] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        if ([subdesc addColumnWithName:@"sub_second" type:RLMTypeString] == NSNotFound) {
-            XCTFail(@"addColumn failed.");
-        }
-        
-        // Add some rows
-        for (NSUInteger i = 0; i < 15; ++i) {
-            if (![table RLM_insertInt:0 ndx:i value:i]) {
-                // NSLog(@"%@", [error localizedDescription]);
-                XCTFail(@"Insert failed.");
-            }
-            if (![table RLM_insertBool:1 ndx:i value:(i % 2 ? YES : NO)]) {
-                XCTFail(@"Insert failed.");
-            }
-            if (![table RLM_insertDate:2 ndx:i value:[NSDate date]]) {
-                XCTFail(@"Insert failed.");
-            }
-            if (![table RLM_insertString:3 ndx:i value:[NSString stringWithFormat:@"string %zu", i]]) {
-                XCTFail(@"Insert failed.");
-            }
-            if (![table RLM_insertString:4 ndx:i value:@" Very long string.............."]) {
-                XCTFail(@"Insert failed.");
-            }
-            
-            switch (i % 3) {
-                case 0:
-                    if (![table RLM_insertString:5 ndx:i value:@"test1"]) {
-                        XCTFail(@"Insert failed.");
-                    }
-                    break;
-                case 1:
-                    if (![table RLM_insertString:5 ndx:i value:@"test2"]) {
-                        XCTFail(@"Insert failed.");
-                    }
-                    break;
-                case 2:
-                    if (![table RLM_insertString:5 ndx:i value:@"test3"]) {
-                        XCTFail(@"Insert failed.");
-                    }
-                    break;
-            }
-            
-            if (![table RLM_insertBinary:6 ndx:i data:"binary" size:7]) {
-                XCTFail(@"Insert failed.");
-            }
-            switch (i % 3) {
-                case 0:
-                    if (![table RLM_insertMixed:7 ndx:i value:[NSNumber numberWithBool:NO] ]) {
-                        XCTFail(@"Insert failed.");
-                    }
-                    break;
-                case 1:
-                    if (![table RLM_insertMixed:7 ndx:i value:[NSNumber numberWithLongLong:i] ]) {
-                        XCTFail(@"Insert failed.");
-                    }
-                    break;
-                case 2:
-                    if (![table RLM_insertMixed:7 ndx:i value:[NSString stringWithUTF8String:"string"] ]) {
-                        XCTFail(@"Insert failed.");
-                    }
-                    break;
-            }
-            if (![table RLM_insertSubtable:8 ndx:i]) {
-                XCTFail(@"Insert failed.");
-            }
-            
-            if (![table RLM_insertDone ]) {
-                XCTFail(@"InsertDone failed.");
-            }
-            
-            // Add sub-tables
-            if (i == 2) {
-                RLMTable* subtable = [table RLM_tableInColumnWithIndex:8 atRowIndex:i];
-                if (![subtable RLM_insertInt:0 ndx:0 value:42]) {
-                    XCTFail(@"Insert failed.");
-                }
-                if (![subtable RLM_insertString:1 ndx:0 value:@"meaning"]) {
-                    XCTFail(@"Insert failed.");
-                }
-                if (![subtable RLM_insertDone ]) {
-                    XCTFail(@"InsertDone failed.");
-                }
-            }
-            
-            
-        }
-        
-        // We also want a ColumnStringEnum
-        if (![table optimize]) {
-            XCTFail(@"Insert failed.");
-        }
-        
-        // Test Deletes
-        XCTAssertNoThrow([table removeRowAtIndex:14]);
-        XCTAssertNoThrow([table removeRowAtIndex:0]);
-        XCTAssertNoThrow([table removeRowAtIndex:5]);
-        
-        XCTAssertEqual(table.rowCount, (NSUInteger)12, @"Size should have been 12");
-        
-        // Test Clear
-        XCTAssertNoThrow([table removeAllRows]);
-        XCTAssertEqual(table.rowCount, (NSUInteger)0, @"Size should have been zero");
-    }];
-}
-
+//- (void)testErrorInsert {
+//    [self createTestTableWithWriteBlock:^(RLMTable *table) {
+//        // Create table with all column types
+//        RLMDescriptor * desc = [table descriptor];
+//        if ([desc addColumnWithName:@"int" type:RLMTypeInt] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        if ([desc addColumnWithName:@"bool" type:RLMTypeBool] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        
+//        if ([desc addColumnWithName:@"date" type:RLMTypeDate] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        if ([desc addColumnWithName:@"string" type:RLMTypeString] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        if ([desc addColumnWithName:@"string_long" type:RLMTypeString] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        if ([desc addColumnWithName:@"string_enum" type:RLMTypeString] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        if ([desc addColumnWithName:@"binary" type:RLMTypeBinary] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        if ([desc addColumnWithName:@"mixed" type:RLMTypeMixed] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        RLMDescriptor * subdesc;
+//        if (!(subdesc = [desc addColumnTable:@"tables"])) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        if ([subdesc addColumnWithName:@"sub_first" type:RLMTypeInt] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        if ([subdesc addColumnWithName:@"sub_second" type:RLMTypeString] == NSNotFound) {
+//            XCTFail(@"addColumn failed.");
+//        }
+//        
+//        // Add some rows
+//        for (NSUInteger i = 0; i < 15; ++i) {
+//            if (![table RLM_insertInt:0 ndx:i value:i]) {
+//                // NSLog(@"%@", [error localizedDescription]);
+//                XCTFail(@"Insert failed.");
+//            }
+//            if (![table RLM_insertBool:1 ndx:i value:(i % 2 ? YES : NO)]) {
+//                XCTFail(@"Insert failed.");
+//            }
+//            if (![table RLM_insertDate:2 ndx:i value:[NSDate date]]) {
+//                XCTFail(@"Insert failed.");
+//            }
+//            if (![table RLM_insertString:3 ndx:i value:[NSString stringWithFormat:@"string %zu", i]]) {
+//                XCTFail(@"Insert failed.");
+//            }
+//            if (![table RLM_insertString:4 ndx:i value:@" Very long string.............."]) {
+//                XCTFail(@"Insert failed.");
+//            }
+//            
+//            switch (i % 3) {
+//                case 0:
+//                    if (![table RLM_insertString:5 ndx:i value:@"test1"]) {
+//                        XCTFail(@"Insert failed.");
+//                    }
+//                    break;
+//                case 1:
+//                    if (![table RLM_insertString:5 ndx:i value:@"test2"]) {
+//                        XCTFail(@"Insert failed.");
+//                    }
+//                    break;
+//                case 2:
+//                    if (![table RLM_insertString:5 ndx:i value:@"test3"]) {
+//                        XCTFail(@"Insert failed.");
+//                    }
+//                    break;
+//            }
+//            
+//            if (![table RLM_insertBinary:6 ndx:i data:"binary" size:7]) {
+//                XCTFail(@"Insert failed.");
+//            }
+//            switch (i % 3) {
+//                case 0:
+//                    if (![table RLM_insertMixed:7 ndx:i value:[NSNumber numberWithBool:NO] ]) {
+//                        XCTFail(@"Insert failed.");
+//                    }
+//                    break;
+//                case 1:
+//                    if (![table RLM_insertMixed:7 ndx:i value:[NSNumber numberWithLongLong:i] ]) {
+//                        XCTFail(@"Insert failed.");
+//                    }
+//                    break;
+//                case 2:
+//                    if (![table RLM_insertMixed:7 ndx:i value:[NSString stringWithUTF8String:"string"] ]) {
+//                        XCTFail(@"Insert failed.");
+//                    }
+//                    break;
+//            }
+//            if (![table RLM_insertSubtable:8 ndx:i]) {
+//                XCTFail(@"Insert failed.");
+//            }
+//            
+//            if (![table RLM_insertDone ]) {
+//                XCTFail(@"InsertDone failed.");
+//            }
+//            
+//            // Add sub-tables
+//            if (i == 2) {
+//                RLMTable* subtable = [table RLM_tableInColumnWithIndex:8 atRowIndex:i];
+//                if (![subtable RLM_insertInt:0 ndx:0 value:42]) {
+//                    XCTFail(@"Insert failed.");
+//                }
+//                if (![subtable RLM_insertString:1 ndx:0 value:@"meaning"]) {
+//                    XCTFail(@"Insert failed.");
+//                }
+//                if (![subtable RLM_insertDone ]) {
+//                    XCTFail(@"InsertDone failed.");
+//                }
+//            }
+//            
+//            
+//        }
+//        
+//        // We also want a ColumnStringEnum
+//        if (![table optimize]) {
+//            XCTFail(@"Insert failed.");
+//        }
+//        
+//        // Test Deletes
+//        XCTAssertNoThrow([table removeRowAtIndex:14]);
+//        XCTAssertNoThrow([table removeRowAtIndex:0]);
+//        XCTAssertNoThrow([table removeRowAtIndex:5]);
+//        
+//        XCTAssertEqual(table.rowCount, (NSUInteger)12, @"Size should have been 12");
+//        
+//        // Test Clear
+//        XCTAssertNoThrow([table removeAllRows]);
+//        XCTAssertEqual(table.rowCount, (NSUInteger)0, @"Size should have been zero");
+//    }];
+//}
+//
 - (void)testQueryErrHandling {
     [self.realmWithTestPath writeUsingBlock:^(RLMRealm *realm) {
-        TestQueryAllTable *table = [TestQueryAllTable tableInRealm:realm named:@"table"];
+        TestQueryAllTable *table = (TestQueryAllTable *)[realm createTableNamed:@"table" objectClass:[TestQueryAllObject class]];
         XCTAssertNotNil(table, @"Table is nil");
         
         const char bin[4] = { 0, 1, 2, 3 };
@@ -300,8 +290,7 @@ RLM_TABLE_TYPE_FOR_OBJECT_TYPE(TestQueryAllTable, TestQueryAllObject);
                         @"StringCol": @"banach",
                         @"BinaryCol": bin2,
                         @"DateCol":   date}];
-        TestQueryTable *subtable = [table lastRow][@"TableCol"];
-        [subtable addRow:@[@100]];
+        [table.lastRow.TableCol addRow:@[@100]];
         
         XCTAssertEqual([table countWhere:@"BoolCol == NO"],      (NSUInteger)1, @"BoolCol count");
         XCTAssertEqual([table countWhere:@"IntCol == 54"],       (NSUInteger)1, @"IntCol count");

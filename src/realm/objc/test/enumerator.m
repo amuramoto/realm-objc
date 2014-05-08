@@ -37,7 +37,7 @@
     RLMRealm *realm = [RLMRealm realmWithPath:RLMTestRealmPath];
     
     [realm beginWriteTransaction];
-    RLMTable *people = [realm createTableWithName:@"people" objectClass:[EnumPeople class]];
+    RLMTable *people = [realm createTableNamed:@"people" objectClass:[EnumPeople class]];
     // Add some rows
     for (NSArray *rowArray in rowsArray) {
         [people addRow:rowArray];
@@ -106,6 +106,4 @@
     }
 }
 
-
 @end
-
