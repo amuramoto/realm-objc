@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DB5C4964198762F90012144F /* Realm.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB5C4963198762F90012144F /* Realm.framework */; };
 		DB99CCFD1968B6E200284A25 /* Venue.m in Sources */ = {isa = PBXBuildFile; fileRef = DB99CCFC1968B6E200284A25 /* Venue.m */; };
 		DBB7F3051968B03000CEE7F3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBB7F3041968B03000CEE7F3 /* Foundation.framework */; };
 		DBB7F3071968B03000CEE7F3 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBB7F3061968B03000CEE7F3 /* CoreGraphics.framework */; };
@@ -32,6 +33,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		DB5C496119875E740012144F /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = ../../../../../../Downloads/Realm.framework; sourceTree = "<group>"; };
+		DB5C4963198762F90012144F /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "../../../../../../Downloads/realm-cocoa-0.81.0 2/ios/Realm.framework"; sourceTree = "<group>"; };
 		DB99CCFB1968B6E200284A25 /* Venue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Venue.h; path = ../Venue.h; sourceTree = "<group>"; };
 		DB99CCFC1968B6E200284A25 /* Venue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Venue.m; path = ../Venue.m; sourceTree = "<group>"; };
 		DBB7F3011968B03000CEE7F3 /* RealmRestExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealmRestExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -55,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB5C4964198762F90012144F /* Realm.framework in Frameworks */,
 				DBB7F3341968B09200CEE7F3 /* libc++.dylib in Frameworks */,
 				DBB7F3071968B03000CEE7F3 /* CoreGraphics.framework in Frameworks */,
 				DBB7F3091968B03000CEE7F3 /* UIKit.framework in Frameworks */,
@@ -96,6 +100,8 @@
 		DBB7F3031968B03000CEE7F3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DB5C4963198762F90012144F /* Realm.framework */,
+				DB5C496119875E740012144F /* Realm.framework */,
 				DBB7F3331968B09200CEE7F3 /* libc++.dylib */,
 				DBB7F3041968B03000CEE7F3 /* Foundation.framework */,
 				DBB7F3061968B03000CEE7F3 /* CoreGraphics.framework */,
@@ -338,6 +344,9 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"${SRCROOT}/../../../build/${CONFIGURATION}",
 					"$(inherited)",
+					/Users/Maxx/Downloads,
+					"/Users/Maxx/Downloads/realm-cocoa-0.81.0",
+					2/ios,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RealmRestExample/RealmRestExample-Prefix.pch";
@@ -359,6 +368,9 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"${SRCROOT}/../../../build/${CONFIGURATION}",
 					"$(inherited)",
+					/Users/Maxx/Downloads,
+					"/Users/Maxx/Downloads/realm-cocoa-0.81.0",
+					2/ios,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RealmRestExample/RealmRestExample-Prefix.pch";
